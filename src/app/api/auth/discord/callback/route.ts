@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import admin from 'firebase-admin';
 
@@ -10,6 +9,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, NEXT_PUBLIC_BASE_URL } = process.env;
+
+    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !DISCORD_REDIRECT_URI || !NEXT_PUBLIC_BASE_URL) {
+      console.error('A required environment variable for Discord OAuth is missing.');
+      return NextResponse.json({ error: 'Server is missing required configuration.' }, { status: 500 });
+    }
+    
     // 1. Exchange authorization code for an access token
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
@@ -17,11 +23,11 @@ export async function GET(req: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: process.env.DISCORD_CLIENT_ID!,
-        client_secret: process.env.DISCORD_CLIENT_SECRET!,
+        client_id: DISCORD_CLIENT_ID,
+        client_secret: DISCORD_CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/discord/callback`,
+        redirect_uri: DISCORD_REDIRECT_URI,
       }),
     });
 
@@ -53,7 +59,7 @@ export async function GET(req: NextRequest) {
     const customToken = await admin.auth().createCustomToken(userData.id);
 
     // 4. Redirect to a frontend page with the custom token
-    const redirectUrl = new URL('/auth/verify', process.env.NEXT_PUBLIC_BASE_URL!);
+    const redirectUrl = new URL('/auth/verify', NEXT_PUBLIC_BASE_URL);
     redirectUrl.searchParams.set('token', customToken);
 
     return NextResponse.redirect(redirectUrl.toString());
