@@ -3,6 +3,13 @@ import { config } from './config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { handleError } from './handlers/ErrorHandler';
+import * as admin from 'firebase-admin';
+
+// Initialize the Firebase Admin SDK.
+// This requires the GOOGLE_APPLICATION_DEFAULT_CREDENTIALS environment variable
+// to be set in your execution environment.
+admin.initializeApp();
+console.log('[INFO] Firebase Admin SDK initialized for App Check token generation.');
 
 // Extend Client to include a commands property for storing loaded commands
 class BotClient extends Client {

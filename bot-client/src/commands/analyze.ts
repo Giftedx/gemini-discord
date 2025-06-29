@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { config } from '../config';
-import fetch from 'node-fetch';
 import { UserVisibleError } from '../handlers/ErrorHandler';
+import { fetchWithAppCheck } from '../services/backendService';
 
 // Define a type for the expected analysis response for better type safety
 interface AnalysisResponse {
@@ -40,9 +39,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
     const fileContent = await fileResponse.text();
 
-    const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/analyzeCode`, {
+    const backendResponse = await fetchWithAppCheck('/api/ai/analyzeCode', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, fileContent, userPrompt }),
     });
 

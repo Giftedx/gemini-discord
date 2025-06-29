@@ -11,6 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { createWorkflow as createWorkflowService } from '@/services/workflowService';
 import { WorkflowSchema } from '@/models/workflow';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 // We omit the server-generated fields for the input schema.
 export const CreateWorkflowInputSchema = WorkflowSchema.omit({
@@ -37,6 +38,7 @@ const createWorkflowFlow = ai.defineFlow(
         name: 'createWorkflowFlow',
         inputSchema: CreateWorkflowInputSchema,
         outputSchema: CreateWorkflowOutputSchema,
+        middleware: [appCheckMiddleware],
     },
     async (workflowData) => {
         const workflowId = await createWorkflowService(workflowData);

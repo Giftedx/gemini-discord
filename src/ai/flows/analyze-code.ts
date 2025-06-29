@@ -11,6 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {getUserApiKey, incrementRequestCount} from '@/services/userService';
 import {GoogleGenerativeAI} from '@google/generative-ai';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 const AnalyzeCodeInputSchema = z.object({
   userId: z
@@ -88,6 +89,7 @@ const analyzeFlow = ai.defineFlow(
     name: 'analyzeFlow',
     inputSchema: AnalyzeCodeInputSchema,
     outputSchema: AnalyzeCodeOutputSchema,
+    middleware: [appCheckMiddleware],
   },
   async input => {
     const userApiKey = await getUserApiKey(input.userId);

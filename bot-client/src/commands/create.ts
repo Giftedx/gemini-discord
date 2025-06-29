@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from 'discord.js';
-import { config } from '../config';
-import fetch from 'node-fetch';
+import { fetchWithAppCheck } from '../services/backendService';
 
 export const data = new SlashCommandBuilder()
     .setName('create')
@@ -30,9 +29,8 @@ async function handleCreateImage(interaction: ChatInputCommandInteraction) {
     const prompt = interaction.options.getString('prompt', true);
     const userId = interaction.user.id;
 
-    const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/createImage`, {
+    const backendResponse = await fetchWithAppCheck('/api/ai/createImage', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, prompt }),
     });
 

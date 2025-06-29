@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getUserUsageStats } from '@/services/userService';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 export const GetUsageStatsInputSchema = z.object({
   userId: z.string().describe('The Discord User ID.'),
@@ -30,6 +31,7 @@ const getUsageStatsFlow = ai.defineFlow(
     name: 'getUsageStatsFlow',
     inputSchema: GetUsageStatsInputSchema,
     outputSchema: GetUsageStatsOutputSchema,
+    middleware: [appCheckMiddleware],
   },
   async ({ userId }) => {
     const count = await getUserUsageStats(userId);

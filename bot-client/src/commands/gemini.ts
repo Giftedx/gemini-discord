@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { config } from '../config';
 import fetch from 'node-fetch';
 import { UserVisibleError } from '../handlers/ErrorHandler';
+import { fetchWithAppCheck } from '../services/backendService';
 
 export const data = new SlashCommandBuilder()
   .setName('gemini')
@@ -35,9 +35,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         // Convert the file to a Base64 data URI for the backend
         const fileDataUri = `data:${attachment.contentType};base64,${fileBuffer.toString('base64')}`;
 
-        const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/processMultimodalContent`, {
+        const backendResponse = await fetchWithAppCheck('/api/ai/processMultimodalContent', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, prompt, fileDataUri }),
         });
 
@@ -52,9 +51,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     } else {
         // Handle text-only prompt: call summarizeDiscordConversation as a proxy for a simple text chat
-        const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/summarizeDiscordConversation`, {
+        const backendResponse = await fetchWithAppCheck('/api/ai/summarizeDiscordConversation', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId, threadText: prompt }),
         });
 

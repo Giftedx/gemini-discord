@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { config } from '../config';
-import fetch from 'node-fetch';
+import { fetchWithAppCheck } from '../services/backendService';
 
 export const data = new SlashCommandBuilder()
   .setName('search')
@@ -15,9 +14,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const query = interaction.options.getString('query', true);
     const userId = interaction.user.id;
 
-    const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/webSearchAssistedAnswer`, {
+    const backendResponse = await fetchWithAppCheck('/api/ai/webSearchAssistedAnswer', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, query }),
     });
 

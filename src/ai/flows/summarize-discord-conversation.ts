@@ -11,6 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { getUserApiKey, incrementRequestCount } from '@/services/userService';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 const SummarizeDiscordConversationInputSchema = z.object({
   userId: z
@@ -53,6 +54,7 @@ const summarizeDiscordConversationFlow = ai.defineFlow(
     name: 'summarizeDiscordConversationFlow',
     inputSchema: SummarizeDiscordConversationInputSchema,
     outputSchema: SummarizeDiscordConversationOutputSchema,
+    middleware: [appCheckMiddleware],
   },
   async input => {
     const userApiKey = await getUserApiKey(input.userId);

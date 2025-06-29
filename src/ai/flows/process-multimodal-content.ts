@@ -11,6 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { extractTextFromPdf } from '@/services/pdfProcessor';
 import { getUserApiKey, incrementRequestCount } from '@/services/userService';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 const ProcessMultimodalContentInputSchema = z.object({
   userId: z
@@ -63,6 +64,7 @@ const processMultimodalContentFlow = ai.defineFlow(
     name: 'processMultimodalContentFlow',
     inputSchema: ProcessMultimodalContentInputSchema,
     outputSchema: ProcessMultimodalContentOutputSchema,
+    middleware: [appCheckMiddleware],
   },
   async (input) => {
     const { fileDataUri, prompt: userPrompt } = input;

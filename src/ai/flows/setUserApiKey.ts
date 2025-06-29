@@ -9,6 +9,7 @@
 import {ai} from '@/ai/genkit';
 import {saveUserApiKey} from '@/services/userService';
 import {z} from 'genkit';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 export const SetUserApiKeyInputSchema = z.object({
   userId: z.string().describe('The Discord User ID.'),
@@ -25,6 +26,7 @@ const setUserApiKeyFlow = ai.defineFlow(
     name: 'setUserApiKeyFlow',
     inputSchema: SetUserApiKeyInputSchema,
     outputSchema: z.void(),
+    middleware: [appCheckMiddleware],
   },
   async ({userId, apiKey}) => {
     await saveUserApiKey(userId, apiKey);

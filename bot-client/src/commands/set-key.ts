@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { config } from '../config';
-import fetch from 'node-fetch';
+import { fetchWithAppCheck } from '../services/backendService';
 
 export const data = new SlashCommandBuilder()
   .setName('set-key')
@@ -16,9 +15,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const apiKey = interaction.options.getString('api_key', true);
     const userId = interaction.user.id;
 
-    const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/setUserApiKey`, {
+    const backendResponse = await fetchWithAppCheck('/api/ai/setUserApiKey', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, apiKey }),
     });
 

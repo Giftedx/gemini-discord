@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getUserApiKey, incrementRequestCount } from '@/services/userService';
+import { appCheckMiddleware } from '../middleware/appCheckMiddleware';
 
 export const CreateImageInputSchema = z.object({
   userId: z.string().describe('The Discord User ID.'),
@@ -31,6 +32,7 @@ const createImageFlow = ai.defineFlow(
     name: 'createImageFlow',
     inputSchema: CreateImageInputSchema,
     outputSchema: CreateImageOutputSchema,
+    middleware: [appCheckMiddleware],
   },
   async ({ userId, prompt }) => {
     console.log(`Generating image for prompt: "${prompt}"`);

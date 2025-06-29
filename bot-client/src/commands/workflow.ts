@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, ChannelType } from 'discord.js';
-import { config } from '../config';
-import fetch from 'node-fetch';
 import { UserVisibleError } from '../handlers/ErrorHandler';
+import { fetchWithAppCheck } from '../services/backendService';
 
 export const data = new SlashCommandBuilder()
     .setName('workflow')
@@ -72,9 +71,8 @@ async function handleCreateWorkflow(interaction: ChatInputCommandInteraction) {
         isEnabled: true,
     };
 
-    const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/createWorkflow`, {
+    const backendResponse = await fetchWithAppCheck('/api/ai/createWorkflow', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(workflowPayload),
     });
 
