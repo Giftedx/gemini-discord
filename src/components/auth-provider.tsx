@@ -91,11 +91,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await signInWithPopup(auth, provider);
     } catch (error: any) {
         console.error("Error during Discord login:", error);
-        setError(error.message);
+        let friendlyErrorMessage = "An unexpected error occurred during login.";
+        if (error.code === 'auth/configuration-not-found') {
+          friendlyErrorMessage = "Authentication configuration is missing. Go to your Firebase Console -> Authentication -> Sign-in method and enable the Discord provider.";
+        } else if (error.message) {
+          friendlyErrorMessage = error.message;
+        }
+
+        setError(friendlyErrorMessage);
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: error.message || "An unexpected error occurred during login.",
+            description: friendlyErrorMessage,
         });
     } finally {
         setLoading(false);
