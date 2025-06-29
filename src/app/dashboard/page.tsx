@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/auth-provider';
+import { fetchAuthenticated } from '@/lib/backendService';
 import {
   Table,
   TableBody,
@@ -54,19 +55,10 @@ export default function DashboardPage() {
 
   const fetchWorkflows = useCallback(async () => {
     if (!user) return;
+    setLoading(true);
+    setError(null);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch('/api/workflows', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch workflows.');
-      }
-
+      const response = await fetchAuthenticated('/api/workflows');
       const data = await response.json();
       setWorkflows(data);
     } catch (err: any) {
@@ -77,27 +69,19 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
-    fetchWorkflows();
-  }, [fetchWorkflows]);
+    if (user) {
+      fetchWorkflows();
+    }
+  }, [user, fetchWorkflows]);
 
   const handleStatusToggle = async (workflowId: string, isEnabled: boolean) => {
-    if (!user) return;
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`/api/workflows/${workflowId}`, {
+      await fetchAuthenticated(`/api/workflows/${workflowId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ isEnabled: !isEnabled }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to update workflow status.');
-      }
       
-      // Optimistically update UI or refetch
+      // Optimistically update UI
       setWorkflows(workflows.map(w => w.id === workflowId ? { ...w, isEnabled: !isEnabled } : w));
       toast({
         title: 'Success',
@@ -106,26 +90,17 @@ export default function DashboardPage() {
     } catch (err: any) {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Error updating workflow',
         description: err.message,
       });
     }
   };
 
   const handleDeleteWorkflow = async (workflowId: string) => {
-    if (!user) return;
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`/api/workflows/${workflowId}`, {
+      await fetchAuthenticated(`/api/workflows/${workflowId}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete workflow.');
-      }
 
       setWorkflows(workflows.filter(w => w.id !== workflowId));
       toast({
@@ -135,7 +110,7 @@ export default function DashboardPage() {
     } catch (err: any) {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Error deleting workflow',
         description: err.message,
       });
     }
@@ -153,7 +128,7 @@ export default function DashboardPage() {
      return (
         <Alert variant="destructive">
             <Terminal className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Error Fetching Workflows</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
      )
