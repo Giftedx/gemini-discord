@@ -13,6 +13,7 @@ interface AuthContextType {
   logout: () => void;
   isFirebaseConfigured: boolean;
   error: string | null;
+  authConfigError: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   isFirebaseConfigured: false,
   error: null,
+  authConfigError: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [auth, setAuth] = useState<Auth | null>(null);
+  const [authConfigError, setAuthConfigError] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         (user) => {
           setUser(user);
           setError(null);
+          setAuthConfigError(false);
           setLoading(false);
         },
         (err) => {
@@ -84,6 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setLoading(true);
     setError(null);
+    setAuthConfigError(false);
     try {
         const provider = new OAuthProvider('oidc.discord');
         provider.addScope('identify');
@@ -94,6 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         let friendlyErrorMessage = "An unexpected error occurred during login.";
         if (error.code === 'auth/configuration-not-found') {
           friendlyErrorMessage = "Authentication configuration is missing. Go to your Firebase Console -> Authentication -> Sign-in method and enable the Discord provider.";
+          setAuthConfigError(true);
         } else if (error.message) {
           friendlyErrorMessage = error.message;
         }
@@ -126,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured, error };
+  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured, error, authConfigError };
 
   return (
     <AuthContext.Provider value={value}>

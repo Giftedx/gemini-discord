@@ -22,7 +22,7 @@ const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function LoginPage() {
-  const { user, loading, loginWithDiscord, isFirebaseConfigured, error } = useAuth();
+  const { user, loading, loginWithDiscord, isFirebaseConfigured, error, authConfigError } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -60,21 +60,25 @@ export default function LoginPage() {
           ) : error ? (
              <Alert variant="destructive">
               <Terminal className="h-4 w-4" />
-              <AlertTitle>Authentication Error</AlertTitle>
+              <AlertTitle>{authConfigError ? 'Configuration Required' : 'Authentication Error'}</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           ) : null}
           <Button
             className="w-full"
             onClick={loginWithDiscord}
-            disabled={loading || !isFirebaseConfigured}
+            disabled={loading || !isFirebaseConfigured || authConfigError}
           >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : authConfigError ? (
+              'Configuration Required'
             ) : (
-              <DiscordIcon className="mr-2 h-5 w-5" />
+              <>
+                <DiscordIcon className="mr-2 h-5 w-5" />
+                Login with Discord
+              </>
             )}
-            Login with Discord
           </Button>
         </CardContent>
       </Card>
