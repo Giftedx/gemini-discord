@@ -49,7 +49,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
            <Button asChild className="w-full">
-              <a href="/api/auth/discord/login">
+              <a href="/api/auth/discord/login" target="_top">
                 <DiscordIcon className="mr-2 h-5 w-5" />
                 Login with Discord
               </a>
