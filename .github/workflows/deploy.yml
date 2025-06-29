@@ -1,0 +1,127 @@
+# GitHub Actions CI/CD Workflow for the Gemini Collaborative Suite
+# This workflow automates the build, push, and deployment of both the backend
+# and bot-client services to Google Cloud.
+#
+# !! PRE-REQUISITES !!
+# 1. Google Cloud Project:
+#    - Enable the following APIs: Artifact Registry, Cloud Run, Secret Manager, IAM.
+#    - Create two Artifact Registry Docker repositories (e.g., 'gemini-discord-backend', 'gemini-discord-bot').
+#    - Create two Cloud Run services (e.g., 'gemini-discord-backend', 'gemini-discord-bot').
+#    - Set up Workload Identity Federation between GitHub Actions and your GCP project.
+#    - Store necessary secrets in Google Secret Manager (e.g., 'GOOGLE_API_KEY', 'DISCORD_TOKEN', etc.).
+#
+# 2. GitHub Repository Secrets:
+#    - GCP_PROJECT_ID: Your Google Cloud Project ID.
+#    - GCP_WIF_PROVIDER: The full resource name of your Workload Identity Pool Provider.
+#    - GCP_SERVICE_ACCOUNT: The email address of the service account configured for WIF.
+#
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - "main"
+
+env:
+  GCP_REGION: "us-central1" # Change to your preferred GCP region
+  GAR_LOCATION: "us-central1" # Change to your Artifact Registry location
+  BACKEND_REPO_NAME: "gemini-discord-backend"
+  BOT_REPO_NAME: "gemini-discord-bot"
+  BACKEND_SERVICE_NAME: "gemini-discord-backend"
+  BOT_SERVICE_NAME: "gemini-discord-bot"
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+
+      - name: Build and Push Backend Image
+        run: |-
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BACKEND_REPO_NAME }}/image:${{ github.sha }} ./
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BACKEND_REPO_NAME }}/image:${{ github.sha }}
+        working-directory: ./
+
+      - name: Build and Push Bot Client Image
+        run: |-
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }} ./
+          docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }}
+        working-directory: ./bot-client
+
+  deploy-backend:
+    name: Deploy Backend Service
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.BACKEND_SERVICE_NAME }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BACKEND_REPO_NAME }}/image:${{ github.sha }}
+          secrets:
+            - name: GOOGLE_API_KEY
+              key: latest
+
+  deploy-bot:
+    name: Deploy Bot Client Service
+    needs: deploy-backend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.BOT_SERVICE_NAME }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }}
+          env_vars:
+            BACKEND_URL: ${{ needs.deploy-backend.outputs.url }}
+          secrets:
+            - name: DISCORD_TOKEN
+              key: latest
+            - name: CLIENT_ID
+              key: latest
+            - name: GUILD_ID
+              key: latest

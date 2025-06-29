@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 60, "column": 0}, "map": {"version":3,"sources":["file:///home/user/studio/src/app/api/auth/discord/login/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\n\nexport async function GET() {\n  const discordApiUrl = 'https://discord.com/api/oauth2/authorize';\n\n  if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_REDIRECT_URI) {\n      console.error(\"Missing DISCORD_CLIENT_ID or DISCORD_REDIRECT_URI environment variables.\");\n      return NextResponse.json({ error: \"Server configuration error.\" }, { status: 500 });\n  }\n\n  const params = new URLSearchParams({\n    client_id: process.env.DISCORD_CLIENT_ID,\n    redirect_uri: process.env.DISCORD_REDIRECT_URI,\n    response_type: 'code',\n    scope: 'identify email',\n  });\n\n  const redirectUrl = `${discordApiUrl}?${params.toString()}`;\n  return NextResponse.redirect(redirectUrl);\n}\n"],"names":[],"mappings":";;;AAAA;;AAEO,eAAe;IACpB,MAAM,gBAAgB;IAEtB,IAAI,CAAC,QAAQ,GAAG,CAAC,iBAAiB,IAAI,CAAC,QAAQ,GAAG,CAAC,oBAAoB,EAAE;QACrE,QAAQ,KAAK,CAAC;QACd,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;YAAE,OAAO;QAA8B,GAAG;YAAE,QAAQ;QAAI;IACrF;IAEA,MAAM,SAAS,IAAI,gBAAgB;QACjC,WAAW,QAAQ,GAAG,CAAC,iBAAiB;QACxC,cAAc,QAAQ,GAAG,CAAC,oBAAoB;QAC9C,eAAe;QACf,OAAO;IACT;IAEA,MAAM,cAAc,GAAG,cAAc,CAAC,EAAE,OAAO,QAAQ,IAAI;IAC3D,OAAO,gIAAA,CAAA,eAAY,CAAC,QAAQ,CAAC;AAC/B","debugId":null}}]
+}

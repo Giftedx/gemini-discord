@@ -1,0 +1,10 @@
+{
+  "/api/auth/discord/callback/route": "app/api/auth/discord/callback/route.js",
+  "/api/auth/discord/login/route": "app/api/auth/discord/login/route.js",
+  "/api/workflows/route": "app/api/workflows/route.js",
+  "/auth/verify/page": "app/auth/verify/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js"
+}
