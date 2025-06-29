@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, User, signInWithPopup, signOut, OAuthProvider, Unsubscribe, getAuth, Auth } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithPopup, OAuthProvider, Unsubscribe, getAuth, Auth } from 'firebase/auth';
 import { getFirebaseApp, isFirebaseConfigured } from '@/lib/firebase-client';
 import { useToast } from "@/hooks/use-toast";
 
