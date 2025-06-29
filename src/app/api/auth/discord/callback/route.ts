@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -23,13 +24,13 @@ export async function GET(req: NextRequest) {
       }),
     });
 
-    const tokenData = await tokenResponse.json();
-
     if (!tokenResponse.ok) {
-      console.error('Discord token exchange failed:', tokenData);
-      throw new Error('Failed to exchange authorization code for token.');
+        const errorText = await tokenResponse.text();
+        console.error('Discord token exchange failed:', errorText);
+        throw new Error(`Error fetching Discord access token: ${tokenResponse.status} ${errorText}`);
     }
 
+    const tokenData = await tokenResponse.json();
     const { access_token } = tokenData;
 
     // 2. Use the access token to fetch the user's Discord profile
@@ -39,12 +40,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const userData = await userResponse.json();
-
     if (!userResponse.ok) {
-        console.error('Failed to fetch Discord user profile:', userData);
-        throw new Error('Failed to fetch user profile from Discord.');
+        const errorText = await userResponse.text();
+        console.error('Failed to fetch Discord user profile:', errorText);
+        throw new Error(`Failed to fetch user profile from Discord: ${userResponse.status} ${errorText}`);
     }
+
+    const userData = await userResponse.json();
 
     // 3. Log the user profile to verify success (as per instructions)
     console.log('Successfully fetched Discord user profile:', userData);
@@ -58,7 +60,7 @@ export async function GET(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Discord callback error:', error);
+    console.error('Discord callback error:', error.message);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
