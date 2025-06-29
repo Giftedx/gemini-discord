@@ -18,13 +18,13 @@ for (const file of commandFiles) {
     }
 }
 
-
 const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN);
 
 (async () => {
   try {
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
+    // The put method is used to fully refresh all commands in the guild with the current set
     await rest.put(
       Routes.applicationGuildCommands(config.CLIENT_ID, config.GUILD_ID),
       { body: commands },

@@ -1,11 +1,14 @@
-// Summarizes long Discord threads using GenAI to quickly catch up on the discussion.
-
 'use server';
+/**
+ * @fileOverview A flow for summarizing text-based conversations.
+ *
+ * - summarizeDiscordConversation - A function that handles conversation summarization.
+ * - SummarizeDiscordConversationInput - The input type for the summarizeDiscordConversation function.
+ * - SummarizeDiscordConversationOutput - The return type for the summarizeDiscordConversation function.
+ */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getUserApiKey} from '@/services/userService';
-import {GoogleGenerativeAI} from '@google/generative-ai';
 
 const SummarizeDiscordConversationInputSchema = z.object({
   userId: z
@@ -50,27 +53,9 @@ const summarizeDiscordConversationFlow = ai.defineFlow(
     outputSchema: SummarizeDiscordConversationOutputSchema,
   },
   async input => {
-    const userApiKey = await getUserApiKey(input.userId);
-
-    if (userApiKey) {
-      console.log(`Using custom API key for user ${input.userId}`);
-      const genAI = new GoogleGenerativeAI(userApiKey);
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-pro',
-        generationConfig: {responseMimeType: 'application/json'},
-      });
-      const promptText = `Summarize the following Discord thread. Focus on the key discussion points and decisions made. Provide a summary that allows someone to quickly understand what was discussed without reading the entire thread. Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(
-        SummarizeDiscordConversationOutputSchema.jsonSchema
-      )} \n\nDiscord Thread:\n${input.threadText}`;
-
-      const result = await model.generateContent(promptText);
-      const response = result.response;
-      const text = response.text();
-      return JSON.parse(text) as SummarizeDiscordConversationOutput;
-    } else {
-      console.log('Using global API key.');
-      const {output} = await summarizeDiscordConversationPrompt(input);
-      return output!;
-    }
+    // Note: This initial implementation uses the global API key.
+    // It will be updated in a future task to support per-user keys.
+    const {output} = await summarizeDiscordConversationPrompt(input);
+    return output!;
   }
 );

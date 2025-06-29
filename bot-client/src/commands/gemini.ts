@@ -31,6 +31,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             throw new Error(`Failed to fetch attachment: ${fileResponse.statusText}`);
         }
         const fileBuffer = await fileResponse.buffer();
+        // Convert the file to a Base64 data URI for the backend
         const fileDataUri = `data:${attachment.contentType};base64,${fileBuffer.toString('base64')}`;
 
         const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/processMultimodalContent`, {
@@ -45,10 +46,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         }
 
         const data = await backendResponse.json();
+        // The backend returns an object with an 'analysis' property
         await interaction.editReply(data.analysis || 'No analysis returned.');
 
     } else {
-        // Handle text-only prompt: call summarizeDiscordConversation
+        // Handle text-only prompt: call summarizeDiscordConversation as a proxy for a simple text chat
         const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/summarizeDiscordConversation`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -61,6 +63,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         }
 
         const data = await backendResponse.json();
+        // The backend returns an object with a 'summary' property
         await interaction.editReply(data.summary || 'No summary returned.');
     }
 }

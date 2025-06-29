@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { handleError } from './handlers/ErrorHandler';
 
-// Extend Client to include a commands property
+// Extend Client to include a commands property for storing loaded commands
 class BotClient extends Client {
     commands: Collection<string, any>;
 
@@ -23,13 +23,14 @@ const client = new BotClient({
   ],
 });
 
-// Load commands from the /commands directory
+// Load commands dynamically from the /commands directory
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
 
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	const command = require(filePath);
+	// Set a new item in the Collection with the key as the command name and the value as the exported module
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
         console.log(`[INFO] Loaded command: /${command.data.name}`);
@@ -43,6 +44,7 @@ client.once(Events.ClientReady, c => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
 });
 
+// Central interaction listener (command router)
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -55,8 +57,10 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   }
 
   try {
+    // Execute the command, passing the interaction object
     await command.execute(interaction);
   } catch (error) {
+    // Use the centralized error handler
     await handleError(error, interaction);
   }
 });

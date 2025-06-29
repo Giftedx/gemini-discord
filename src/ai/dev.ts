@@ -1,8 +1,6 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/web-search-assisted-answer.ts';
-import '@/ai/flows/summarize-discord-conversation.ts';
+// Import flows so that they are registered with Genkit.
 import '@/ai/flows/process-multimodal-content.ts';
-import '@/ai/flows/setUserApiKey.ts';
-import '@/ai/flows/analyze-code.ts';
+import '@/ai/flows/summarize-discord-conversation.ts';

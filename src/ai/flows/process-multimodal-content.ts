@@ -9,8 +9,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getUserApiKey} from '@/services/userService';
-import {GoogleGenerativeAI} from '@google/generative-ai';
 
 const ProcessMultimodalContentInputSchema = z.object({
   userId: z
@@ -65,36 +63,9 @@ const processMultimodalContentFlow = ai.defineFlow(
     outputSchema: ProcessMultimodalContentOutputSchema,
   },
   async input => {
-    const userApiKey = await getUserApiKey(input.userId);
-
-    if (userApiKey) {
-      console.log(`Using custom API key for user ${input.userId}`);
-      const genAI = new GoogleGenerativeAI(userApiKey);
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-pro-vision',
-        generationConfig: {responseMimeType: 'application/json'},
-      });
-
-      const fileToGenerativePart = (dataUri: string) => {
-        const match = dataUri.match(/^data:(.+);base64,(.+)$/);
-        if (!match) throw new Error('Invalid data URI');
-        return {inlineData: {mimeType: match[1], data: match[2]}};
-      };
-
-      const promptText = `You are an expert analyst. Analyze the following file and respond to the user's prompt. Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(
-        ProcessMultimodalContentOutputSchema.jsonSchema
-      )} \n\nUser Prompt: ${input.prompt}`;
-
-      const imagePart = fileToGenerativePart(input.fileDataUri);
-
-      const result = await model.generateContent([promptText, imagePart]);
-      const response = result.response;
-      const text = response.text();
-      return JSON.parse(text) as ProcessMultimodalContentOutput;
-    } else {
-      console.log(`Using global API key.`);
-      const {output} = await prompt(input);
-      return output!;
-    }
+    // Note: This initial implementation uses the global API key.
+    // It will be updated in a future task to support per-user keys.
+    const {output} = await prompt(input);
+    return output!;
   }
 );
