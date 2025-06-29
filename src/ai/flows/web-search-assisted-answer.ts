@@ -12,20 +12,32 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const WebSearchAssistedAnswerInputSchema = z.object({
+  userId: z
+    .string()
+    .describe('The Discord User ID of the person making the request.'),
   query: z.string().describe('The query to answer using web search.'),
 });
-export type WebSearchAssistedAnswerInput = z.infer<typeof WebSearchAssistedAnswerInputSchema>;
+export type WebSearchAssistedAnswerInput = z.infer<
+  typeof WebSearchAssistedAnswerInputSchema
+>;
 
 const WebSearchAssistedAnswerOutputSchema = z.object({
-  answer: z.string().describe('The answer to the query, obtained using web search.'),
+  answer: z
+    .string()
+    .describe('The answer to the query, obtained using web search.'),
 });
-export type WebSearchAssistedAnswerOutput = z.infer<typeof WebSearchAssistedAnswerOutputSchema>;
+export type WebSearchAssistedAnswerOutput = z.infer<
+  typeof WebSearchAssistedAnswerOutputSchema
+>;
 
-export async function webSearchAssistedAnswer(input: WebSearchAssistedAnswerInput): Promise<WebSearchAssistedAnswerOutput> {
+export async function webSearchAssistedAnswer(
+  input: WebSearchAssistedAnswerInput
+): Promise<WebSearchAssistedAnswerOutput> {
   return webSearchAssistedAnswerFlow(input);
 }
 
-const webSearchTool = ai.defineTool({
+const webSearchTool = ai.defineTool(
+  {
     name: 'webSearch',
     description: 'Performs a web search and returns the results.',
     inputSchema: z.object({
@@ -33,7 +45,7 @@ const webSearchTool = ai.defineTool({
     }),
     outputSchema: z.string(),
   },
-  async (input) => {
+  async input => {
     // Replace with actual web search implementation.
     // This is a placeholder that simply returns a canned response.
     // In a real application, this would use a service like SerpApi
@@ -63,6 +75,9 @@ const webSearchAssistedAnswerFlow = ai.defineFlow(
     outputSchema: WebSearchAssistedAnswerOutputSchema,
   },
   async input => {
+    // TODO: This flow does not currently support user-specific API keys
+    // because it relies on Genkit's tool-use capabilities, which are
+    // tightly integrated with the global AI configuration.
     const {output} = await prompt(input);
     return output!;
   }
