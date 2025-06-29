@@ -8,9 +8,10 @@ import admin from 'firebase-admin';
 // Check if the app is already initialized to prevent re-initialization
 if (!admin.apps.length) {
   admin.initializeApp({
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     // The SDK will automatically use Google Application Default Credentials
-    // in a Cloud Run environment. For local development, you would need
-    // to set up a service account key file.
+    // for authentication, but explicitly setting the projectId helps it
+    // locate the correct project resources, especially for auth operations.
   });
 }
 
