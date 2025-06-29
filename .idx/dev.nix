@@ -1,48 +1,50 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://firebase.google.com/docs/studio/customize-workspace
-{ pkgs, ... }: {
-  # Which nixpkgs channel to use.
+}{ pkgs, ... }: {
+  # To learn more about how to use Nix to configure your environment
+  # see: https://developers.google.com/idx/guides/customize-dev-env
   channel = "stable-24.05"; # or "unstable"
 
-  # Use https://search.nixos.org/packages to find packages
   packages = [
     pkgs.git
-    pkgs.nodejs_20
-    # pkgs.nodejs_20
-    # pkgs.nodePackages.nodemon
+ pkgs.nodejs_20
+    # These packages are for running integration tests that utilize a sandbox
+    # environment with containerization (Docker/Podman).
+    pkgs.docker
+    pkgs.podman
   ];
 
-  # Sets environment variables in the workspace
-  env = {};
+  env = {
+    # GEMINI_API_KEY: Your API key for the Gemini API. Required for most interactions.
+    # DISCORD_BOT_TOKEN: Your Discord bot token. Required for running the Discord bot.
+    # DISCORD_GUILD_ID: The ID of the Discord guild (server) where you want to register slash commands. Optional.
+    # DEBUG_MODE: Set to 'true' to enable debug logging.
+    # HTTPS_PROXY: Set if you need to use an HTTP proxy.
+  };
+
   idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
-      # "vscodevim.vim"
- "esbenp.prettier-vscode"
+      "vscodevim.vim"
+      "esbenp.prettier-vscode"
     ];
 
-    # Enable previews
     previews = {
       enable = true;
       previews = {
         web = {
-          command = ["npm", "run", "start"];
+          command = [ "npm" "run" "start" ];
           manager = "web";
-          env = { PORT = "$PORT"; };
+          env = {
+            PORT = "$PORT";
+          };
         };
       };
     };
-    # Workspace lifecycle hooks
+
     workspace = {
-      # Runs when a workspace is first created
       onCreate = {
-        # Example: install JS dependencies from NPM
-        npm-install = "npm install";
+        npm-install = "npm ci";
       };
-      # Runs when the workspace is (re)started
       onStart = {
-        # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
+        # Consider setting up VS Code tasks for common development commands like build, test, lint, etc.
       };
     };
   };
