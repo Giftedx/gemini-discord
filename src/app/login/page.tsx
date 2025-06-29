@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/components/auth-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,10 +49,10 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
            <Button asChild className="w-full">
-              <Link href="/api/auth/discord/login">
+              <a href="/api/auth/discord/login">
                 <DiscordIcon className="mr-2 h-5 w-5" />
                 Login with Discord
-              </Link>
+              </a>
             </Button>
         </CardContent>
       </Card>
