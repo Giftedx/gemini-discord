@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { admin } from '@/lib/firebase';
+import admin from 'firebase-admin';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -60,6 +60,6 @@ export async function GET(req: NextRequest) {
 
   } catch (error: any) {
     console.error('Discord callback error:', error.message);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
