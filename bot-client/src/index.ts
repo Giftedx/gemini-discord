@@ -1,6 +1,16 @@
-import { Client, Events, GatewayIntentBits, Interaction } from 'discord.js';
+import { Client, EmbedBuilder, Events, GatewayIntentBits, Interaction } from 'discord.js';
 import { config } from './config';
 import fetch from 'node-fetch';
+
+// Define a type for the expected analysis response for better type safety
+interface AnalysisResponse {
+  language: string;
+  summary: string;
+  keyComponents: string[];
+  dependencies: string[];
+  potentialIssues: string[];
+  userQueryResponse?: string;
+}
 
 const client = new Client({
   intents: [
@@ -60,7 +70,6 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         
       } else {
         // Handle text-only prompt: call summarizeDiscordConversation
-        // NOTE: This is a proxy for a general chat endpoint.
         const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/summarizeDiscordConversation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -75,6 +84,52 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         const data = await backendResponse.json();
         await interaction.editReply(data.summary || 'No summary returned.');
       }
+    } else if (commandName === 'analyze') {
+      const attachment = interaction.options.getAttachment('file', true);
+      const userPrompt = interaction.options.getString('prompt'); // This is optional
+
+      if (!attachment.contentType?.startsWith('text/')) {
+        await interaction.editReply('Unsupported file type. Please provide a text-based file for analysis.');
+        return;
+      }
+
+      const fileResponse = await fetch(attachment.url);
+      if (!fileResponse.ok) {
+        throw new Error(`Failed to fetch attachment: ${fileResponse.statusText}`);
+      }
+      const fileContent = await fileResponse.text();
+
+      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/analyzeCode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, fileContent, userPrompt }),
+      });
+
+      if (!backendResponse.ok) {
+        const errorText = await backendResponse.text();
+        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
+      }
+
+      const data: AnalysisResponse = await backendResponse.json();
+
+      const analysisEmbed = new EmbedBuilder()
+        .setColor(0x4A90E2) // A nice blue color
+        .setTitle(`Code Analysis: ${attachment.name}`)
+        .setDescription(data.summary || 'No summary provided.')
+        .addFields(
+          { name: 'Language', value: data.language || 'Undetermined' },
+          { name: 'Key Components', value: data.keyComponents.length > 0 ? data.keyComponents.map(c => `• \`${c}\``).join('\n') : 'None found' },
+          { name: 'Dependencies', value: data.dependencies.length > 0 ? data.dependencies.map(d => `\`${d}\``).join(', ') : 'None found' },
+          { name: 'Potential Issues', value: data.potentialIssues.length > 0 ? data.potentialIssues.map(i => `• ${i}`).join('\n') : 'None found' }
+        )
+        .setTimestamp()
+        .setFooter({ text: 'Powered by Gemini' });
+
+      if (data.userQueryResponse) {
+        analysisEmbed.addFields({ name: 'Response to Your Question', value: data.userQueryResponse });
+      }
+
+      await interaction.editReply({ embeds: [analysisEmbed] });
     } else {
       await interaction.editReply({ content: `Command \`/${commandName}\` is not yet implemented.`});
     }
