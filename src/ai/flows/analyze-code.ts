@@ -9,7 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getUserApiKey} from '@/services/userService';
+import {getUserApiKey, incrementRequestCount} from '@/services/userService';
 import {GoogleGenerativeAI} from '@google/generative-ai';
 
 const AnalyzeCodeInputSchema = z.object({
@@ -113,6 +113,7 @@ const analyzeFlow = ai.defineFlow(
       const result = await model.generateContent(promptText);
       const response = result.response;
       const text = response.text();
+      await incrementRequestCount(input.userId);
       return JSON.parse(text) as AnalyzeCodeOutput;
     } else {
       console.log('Using global API key.');

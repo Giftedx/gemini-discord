@@ -9,6 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { getUserApiKey, incrementRequestCount } from '@/services/userService';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const SummarizeDiscordConversationInputSchema = z.object({
   userId: z
@@ -53,9 +55,28 @@ const summarizeDiscordConversationFlow = ai.defineFlow(
     outputSchema: SummarizeDiscordConversationOutputSchema,
   },
   async input => {
-    // Note: This initial implementation uses the global API key.
-    // It will be updated in a future task to support per-user keys.
-    const {output} = await summarizeDiscordConversationPrompt(input);
-    return output!;
+    const userApiKey = await getUserApiKey(input.userId);
+
+    if (userApiKey) {
+        console.log(`Using custom API key for user ${input.userId}`);
+        const genAI = new GoogleGenerativeAI(userApiKey);
+        const model = genAI.getGenerativeModel({ 
+            model: 'gemini-pro',
+            generationConfig: { responseMimeType: 'application/json' },
+        });
+        
+        const systemPrompt = `You will be provided with a Discord thread. Summarize it, focusing on key discussion points and decisions. Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(SummarizeDiscordConversationOutputSchema.jsonSchema)}`;
+        const promptForCustomKey = `${systemPrompt}\n\nDiscord Thread:\n${input.threadText}`;
+
+        const result = await model.generateContent(promptForCustomKey);
+        const response = result.response;
+        const text = response.text();
+        await incrementRequestCount(input.userId);
+        return JSON.parse(text) as SummarizeDiscordConversationOutput;
+    } else {
+        console.log('Using global API key.');
+        const {output} = await summarizeDiscordConversationPrompt(input);
+        return output!;
+    }
   }
 );

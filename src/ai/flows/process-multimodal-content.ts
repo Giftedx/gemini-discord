@@ -10,6 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { extractTextFromPdf } from '@/services/pdfProcessor';
+import { getUserApiKey, incrementRequestCount } from '@/services/userService';
 
 const ProcessMultimodalContentInputSchema = z.object({
   userId: z
@@ -65,6 +66,7 @@ const processMultimodalContentFlow = ai.defineFlow(
   },
   async (input) => {
     const { fileDataUri, prompt: userPrompt } = input;
+    let analysis: string;
 
     const mimeTypeMatch = fileDataUri.match(/^data:(.*);base64,/);
     if (!mimeTypeMatch) {
@@ -87,12 +89,20 @@ ${pdfText}
 User Prompt: ${userPrompt}
 `;
       const { text } = await ai.generate({ prompt: textAnalysisPrompt });
-      return { analysis: text() };
+      analysis = text();
 
     } else {
       // For images and other text files, use the existing multimodal prompt.
+      // This path does not currently support user-specific API keys.
       const { output } = await multimodalPrompt(input);
-      return output!;
+      analysis = output!.analysis;
     }
+
+    const userApiKey = await getUserApiKey(input.userId);
+    if (userApiKey) {
+        await incrementRequestCount(input.userId);
+    }
+    
+    return { analysis };
   }
 );

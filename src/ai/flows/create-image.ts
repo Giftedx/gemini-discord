@@ -9,8 +9,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { getUserApiKey, incrementRequestCount } from '@/services/userService';
 
 export const CreateImageInputSchema = z.object({
+  userId: z.string().describe('The Discord User ID.'),
   prompt: z.string().describe('The text prompt to generate an image from.'),
 });
 export type CreateImageInput = z.infer<typeof CreateImageInputSchema>;
@@ -30,7 +32,7 @@ const createImageFlow = ai.defineFlow(
     inputSchema: CreateImageInputSchema,
     outputSchema: CreateImageOutputSchema,
   },
-  async ({ prompt }) => {
+  async ({ userId, prompt }) => {
     console.log(`Generating image for prompt: "${prompt}"`);
     const { media } = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
@@ -42,6 +44,12 @@ const createImageFlow = ai.defineFlow(
 
     if (!media || !media.url) {
       throw new Error('Image generation failed to produce an image.');
+    }
+
+    const userApiKey = await getUserApiKey(userId);
+    if (userApiKey) {
+        await incrementRequestCount(userId);
+        console.log(`Incremented request count for user ${userId} for image generation.`);
     }
 
     console.log('Image generation successful.');
