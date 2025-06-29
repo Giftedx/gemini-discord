@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
 import fetch from 'node-fetch';
+import { UserVisibleError } from '../handlers/ErrorHandler';
 
 export const data = new SlashCommandBuilder()
   .setName('gemini')
@@ -22,8 +23,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (attachment) {
         // Handle file attachment: call processMultimodalContent
         if (!attachment.contentType?.startsWith('text/')) {
-            await interaction.editReply('Unsupported file type. Please provide a text-based file.');
-            return;
+            throw new UserVisibleError('Unsupported file type. Please provide a text-based file.');
         }
 
         const fileResponse = await fetch(attachment.url);

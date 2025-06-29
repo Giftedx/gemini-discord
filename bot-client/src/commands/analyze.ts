@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { config } from '../config';
 import fetch from 'node-fetch';
+import { UserVisibleError } from '../handlers/ErrorHandler';
 
 // Define a type for the expected analysis response for better type safety
 interface AnalysisResponse {
@@ -30,8 +31,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const userId = interaction.user.id;
 
     if (!attachment.contentType?.startsWith('text/')) {
-        await interaction.editReply('Unsupported file type. Please provide a text-based file for analysis.');
-        return;
+        throw new UserVisibleError('Unsupported file type. Please provide a text-based file for analysis.');
     }
 
     const fileResponse = await fetch(attachment.url);

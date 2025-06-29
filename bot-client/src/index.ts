@@ -2,6 +2,7 @@ import { Client, Collection, Events, GatewayIntentBits, Interaction } from 'disc
 import { config } from './config';
 import fs from 'node:fs';
 import path from 'node:path';
+import { handleError } from './handlers/ErrorHandler';
 
 // Extend Client to include a commands property
 class BotClient extends Client {
@@ -56,13 +57,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(`Error executing ${interaction.commandName}:`, error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    if (interaction.replied || interaction.deferred) {
-		await interaction.followUp({ content: `There was an error while executing this command: ${errorMessage}`, ephemeral: true });
-	} else {
-		await interaction.reply({ content: `There was an error while executing this command: ${errorMessage}`, ephemeral: true });
-	}
+    await handleError(error, interaction);
   }
 });
 
