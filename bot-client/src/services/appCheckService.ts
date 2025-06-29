@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { config } from '../config';
 
 // Simple in-memory cache for the App Check token

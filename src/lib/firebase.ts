@@ -3,7 +3,7 @@
  * This ensures a single instance of the SDK is used throughout the application.
  */
 
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 // Check if the app is already initialized to prevent re-initialization
 if (!admin.apps.length) {

@@ -3,7 +3,7 @@ import { config } from './config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { handleError } from './handlers/ErrorHandler';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 // Initialize the Firebase Admin SDK.
 // This requires the GOOGLE_APPLICATION_DEFAULT_CREDENTIALS environment variable
