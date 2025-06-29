@@ -1,24 +1,31 @@
-# bot-client/Dockerfile
+# Dockerfile for bot-client
 
-# ---- Build Stage ----
-FROM node:20-slim AS builder
-WORKDIR /app
-COPY package.json package-lock.json* ./
+# Build stage
+FROM node:20-slim AS build
+WORKDIR /usr/src/app
+
+# Copy package files and install all dependencies (including dev)
+COPY package*.json ./
 RUN npm ci
+
+# Copy the rest of the application source code
 COPY . .
-# Build the TypeScript code
+
+# Build the TypeScript source code
 RUN npm run build
 
-# ---- Production Stage ----
-FROM node:20-slim AS production
+# Production stage
+FROM node:20-slim
+WORKDIR /usr/src/app
+
 ENV NODE_ENV=production
-WORKDIR /app
-# Copy production dependencies from builder
-COPY package.json package-lock.json* ./
+
+# Copy package files and install only production dependencies
+COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy compiled code from builder
-COPY --from=builder /app/dist ./dist
+# Copy the compiled output from the build stage
+COPY --from=build /usr/src/app/dist ./dist
 
-# Run the bot
+# Command to run the bot
 CMD ["node", "dist/index.js"]
