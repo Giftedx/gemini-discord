@@ -100,6 +100,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (error.code === 'auth/configuration-not-found') {
           friendlyErrorMessage = "Authentication configuration is missing. Go to your Firebase Console -> Authentication -> Sign-in method and enable the Discord provider.";
           setAuthConfigError(true);
+        } else if (error.code === 'auth/unauthorized-domain') {
+          friendlyErrorMessage = "This domain is not authorized for OAuth operations. Go to your Firebase Console -> Authentication -> Settings -> Authorized domains and add the domain you are using. For local development, add 'localhost'.";
+          setAuthConfigError(true);
         } else if (error.message) {
           friendlyErrorMessage = error.message;
         }
