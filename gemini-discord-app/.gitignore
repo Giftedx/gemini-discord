@@ -91,3 +91,5 @@ service-account-key.json
 
 # TurboRepo cache
 .turbo
+
+service-account-key.json
