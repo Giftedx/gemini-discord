@@ -12,6 +12,7 @@ interface AuthContextType {
   loginWithDiscord: () => void;
   logout: () => void;
   isFirebaseConfigured: boolean;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,11 +21,13 @@ const AuthContext = createContext<AuthContextType>({
   loginWithDiscord: () => {},
   logout: () => {},
   isFirebaseConfigured: false,
+  error: null,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const isFirebaseConfigured = !!auth;
 
@@ -33,10 +36,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth!, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    // Add the error observer to catch initialization errors
+    const unsubscribe = onAuthStateChanged(auth!, 
+      (user) => {
+        setUser(user);
+        setError(null); // Clear any previous errors on success
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firebase auth state error:", err);
+        // Provide a more user-friendly error message
+        if (err.code === 'auth/invalid-api-key' || err.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key..') {
+            setError('Firebase API Key is not valid. Please check your environment configuration.');
+        } else {
+            setError(err.message);
+        }
+        setLoading(false);
+      }
+    );
     return () => unsubscribe();
   }, [isFirebaseConfigured]);
 
@@ -50,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
     setLoading(true);
+    setError(null); // Clear error before attempting login
     try {
         const provider = new OAuthProvider('oidc.discord');
         // Optional: Add scopes to request additional user info
@@ -58,6 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await signInWithPopup(auth!, provider);
     } catch (error: any) {
         console.error("Error during Discord login:", error);
+        setError(error.message);
         toast({
             variant: "destructive",
             title: "Login Failed",
@@ -87,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured };
+  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured, error };
 
   return (
     <AuthContext.Provider value={value}>

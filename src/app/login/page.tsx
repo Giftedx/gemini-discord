@@ -22,7 +22,7 @@ const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function LoginPage() {
-  const { user, loading, loginWithDiscord, isFirebaseConfigured } = useAuth();
+  const { user, loading, loginWithDiscord, isFirebaseConfigured, error } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isFirebaseConfigured && (
+          {!isFirebaseConfigured ? (
             <Alert variant="destructive">
               <Terminal className="h-4 w-4" />
               <AlertTitle>Configuration Error</AlertTitle>
@@ -57,7 +57,13 @@ export default function LoginPage() {
                 Firebase client configuration is missing. Please set the required `NEXT_PUBLIC_FIREBASE_*` environment variables.
               </AlertDescription>
             </Alert>
-          )}
+          ) : error ? (
+             <Alert variant="destructive">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Authentication Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
           <Button
             className="w-full"
             onClick={loginWithDiscord}
