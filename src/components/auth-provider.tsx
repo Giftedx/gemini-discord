@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, User, signInWithPopup, signOut, OAuthProvider } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithPopup, signOut, OAuthProvider, Unsubscribe } from 'firebase/auth';
 import { auth } from '@/lib/firebase-client';
 import { useToast } from "@/hooks/use-toast"
 
@@ -36,25 +36,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
       return;
     }
-    // Add the error observer to catch initialization errors
-    const unsubscribe = onAuthStateChanged(auth!, 
-      (user) => {
-        setUser(user);
-        setError(null); // Clear any previous errors on success
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Firebase auth state error:", err);
-        // Provide a more user-friendly error message
-        if (err.code === 'auth/invalid-api-key' || err.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key..') {
+    
+    let unsubscribe: Unsubscribe | undefined;
+
+    try {
+      // The onAuthStateChanged listener can throw a synchronous error if the Firebase config is invalid.
+      // This try/catch block handles that case. The error observer below handles async errors.
+      unsubscribe = onAuthStateChanged(auth!,
+        (user) => {
+          setUser(user);
+          setError(null); // Clear any previous errors on success
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Firebase auth state error:", err);
+          if (err.code && (err.code === 'auth/invalid-api-key' || err.code.includes('api-key-not-valid'))) {
+              setError('Firebase API Key is not valid. Please check your environment configuration.');
+          } else {
+              setError(err.message);
+          }
+          setLoading(false);
+        }
+      );
+    } catch (err: any) {
+        console.error("Firebase auth setup error:", err);
+        if (err.code && (err.code === 'auth/invalid-api-key' || err.code.includes('api-key-not-valid'))) {
             setError('Firebase API Key is not valid. Please check your environment configuration.');
         } else {
             setError(err.message);
         }
         setLoading(false);
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
-    );
-    return () => unsubscribe();
+    };
   }, [isFirebaseConfigured]);
 
   const loginWithDiscord = async () => {
