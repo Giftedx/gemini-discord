@@ -1,18 +1,19 @@
-import { Client, EmbedBuilder, Events, GatewayIntentBits, Interaction } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, Interaction } from 'discord.js';
 import { config } from './config';
-import fetch from 'node-fetch';
+import fs from 'node:fs';
+import path from 'node:path';
 
-// Define a type for the expected analysis response for better type safety
-interface AnalysisResponse {
-  language: string;
-  summary: string;
-  keyComponents: string[];
-  dependencies: string[];
-  potentialIssues: string[];
-  userQueryResponse?: string;
+// Extend Client to include a commands property
+class BotClient extends Client {
+    commands: Collection<string, any>;
+
+    constructor(options: any) {
+        super(options);
+        this.commands = new Collection();
+    }
 }
 
-const client = new Client({
+const client = new BotClient({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -21,6 +22,22 @@ const client = new Client({
   ],
 });
 
+// Load commands from the /commands directory
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.ts'));
+
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	if ('data' in command && 'execute' in command) {
+		client.commands.set(command.data.name, command);
+        console.log(`[INFO] Loaded command: /${command.data.name}`);
+	} else {
+		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
+
+
 client.once(Events.ClientReady, c => {
   console.log(`Ready! Logged in as ${c.user.tag}`);
 });
@@ -28,152 +45,18 @@ client.once(Events.ClientReady, c => {
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  const { commandName } = interaction;
-  console.log(`Received command: ${commandName}`);
+  const command = client.commands.get(interaction.commandName);
 
-  // Deferral is handled within each command block to allow for ephemeral vs. public replies.
+  if (!command) {
+    console.error(`No command matching ${interaction.commandName} was found.`);
+    await interaction.reply({ content: `Command \`/${interaction.commandName}\` was not found.`, ephemeral: true});
+    return;
+  }
 
   try {
-    const userId = interaction.user.id;
-
-    if (commandName === 'gemini') {
-      await interaction.deferReply();
-      const prompt = interaction.options.getString('prompt', true);
-      const attachment = interaction.options.getAttachment('file');
-
-      if (attachment) {
-        // Handle file attachment: call processMultimodalContent
-        if (!attachment.contentType?.startsWith('text/')) {
-          await interaction.editReply('Unsupported file type. Please provide a text-based file.');
-          return;
-        }
-
-        const fileResponse = await fetch(attachment.url);
-        if (!fileResponse.ok) {
-          throw new Error(`Failed to fetch attachment: ${fileResponse.statusText}`);
-        }
-        const fileBuffer = await fileResponse.buffer();
-        const fileDataUri = `data:${attachment.contentType};base64,${fileBuffer.toString('base64')}`;
-
-        const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/processMultimodalContent`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, prompt, fileDataUri }),
-        });
-
-        if (!backendResponse.ok) {
-          const errorText = await backendResponse.text();
-          throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
-        }
-
-        const data = await backendResponse.json();
-        await interaction.editReply(data.analysis || 'No analysis returned.');
-        
-      } else {
-        // Handle text-only prompt: call summarizeDiscordConversation
-        const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/summarizeDiscordConversation`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, threadText: prompt }),
-        });
-
-        if (!backendResponse.ok) {
-          const errorText = await backendResponse.text();
-          throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
-        }
-
-        const data = await backendResponse.json();
-        await interaction.editReply(data.summary || 'No summary returned.');
-      }
-    } else if (commandName === 'analyze') {
-      await interaction.deferReply();
-      const attachment = interaction.options.getAttachment('file', true);
-      const userPrompt = interaction.options.getString('prompt'); // This is optional
-
-      if (!attachment.contentType?.startsWith('text/')) {
-        await interaction.editReply('Unsupported file type. Please provide a text-based file for analysis.');
-        return;
-      }
-
-      const fileResponse = await fetch(attachment.url);
-      if (!fileResponse.ok) {
-        throw new Error(`Failed to fetch attachment: ${fileResponse.statusText}`);
-      }
-      const fileContent = await fileResponse.text();
-
-      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/analyzeCode`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, fileContent, userPrompt }),
-      });
-
-      if (!backendResponse.ok) {
-        const errorText = await backendResponse.text();
-        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
-      }
-
-      const data: AnalysisResponse = await backendResponse.json();
-
-      const analysisEmbed = new EmbedBuilder()
-        .setColor(0x4A90E2) // A nice blue color
-        .setTitle(`Code Analysis: ${attachment.name}`)
-        .setDescription(data.summary || 'No summary provided.')
-        .addFields(
-          { name: 'Language', value: data.language || 'Undetermined' },
-          { name: 'Key Components', value: data.keyComponents.length > 0 ? data.keyComponents.map(c => `• \`${c}\``).join('\n') : 'None found' },
-          { name: 'Dependencies', value: data.dependencies.length > 0 ? data.dependencies.map(d => `\`${d}\``).join(', ') : 'None found' },
-          { name: 'Potential Issues', value: data.potentialIssues.length > 0 ? data.potentialIssues.map(i => `• ${i}`).join('\n') : 'None found' }
-        )
-        .setTimestamp()
-        .setFooter({ text: 'Powered by Gemini' });
-
-      if (data.userQueryResponse) {
-        analysisEmbed.addFields({ name: 'Response to Your Question', value: data.userQueryResponse });
-      }
-
-      await interaction.editReply({ embeds: [analysisEmbed] });
-    } else if (commandName === 'set-key') {
-      await interaction.deferReply({ ephemeral: true });
-
-      const apiKey = interaction.options.getString('api_key', true);
-
-      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/setUserApiKey`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, apiKey }),
-      });
-
-      if (!backendResponse.ok) {
-        const errorText = await backendResponse.text();
-        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
-      }
-
-      await interaction.editReply({ content: 'Your API key has been securely saved and will be used for your future requests.' });
-    
-    } else if (commandName === 'search') {
-      await interaction.deferReply();
-      const query = interaction.options.getString('query', true);
-      
-      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/webSearchAssistedAnswer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, query }),
-      });
-      
-      if (!backendResponse.ok) {
-        const errorText = await backendResponse.text();
-        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
-      }
-
-      const data = await backendResponse.json();
-      await interaction.editReply(data.answer || 'No answer returned from web search.');
-
-    } else {
-      await interaction.reply({ content: `Command \`/${commandName}\` is not yet implemented.`, ephemeral: true});
-    }
-
+    await command.execute(interaction);
   } catch (error) {
-    console.error(`Error executing command ${commandName}:`, error);
+    console.error(`Error executing ${interaction.commandName}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
     if (interaction.replied || interaction.deferred) {
 		await interaction.followUp({ content: `There was an error while executing this command: ${errorMessage}`, ephemeral: true });
