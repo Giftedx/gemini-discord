@@ -62,8 +62,9 @@ jobs:
 
       - name: Build and Push Bot Client Image
         run: |-
-          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }} ./bot-client
+          docker build -t ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }} ./
           docker push ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.BOT_REPO_NAME }}/image:${{ github.sha }}
+        working-directory: ./bot-client
 
   deploy-backend:
     name: Deploy Backend Service
