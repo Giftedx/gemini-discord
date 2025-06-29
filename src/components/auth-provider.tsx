@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
@@ -10,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   loginWithDiscord: () => void;
   logout: () => void;
+  isFirebaseConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,29 +19,43 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   loginWithDiscord: () => {},
   logout: () => {},
+  isFirebaseConfigured: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const isFirebaseConfigured = !!auth;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (!isFirebaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth!, (user) => {
       setUser(user);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [isFirebaseConfigured]);
 
   const loginWithDiscord = async () => {
+    if (!isFirebaseConfigured) {
+      toast({
+        variant: 'destructive',
+        title: 'Configuration Error',
+        description: 'Firebase is not configured. Please check your environment variables.',
+      });
+      return;
+    }
     setLoading(true);
     try {
         const provider = new OAuthProvider('oidc.discord');
         // Optional: Add scopes to request additional user info
         provider.addScope('identify');
         provider.addScope('email');
-        await signInWithPopup(auth, provider);
+        await signInWithPopup(auth!, provider);
     } catch (error: any) {
         console.error("Error during Discord login:", error);
         toast({
@@ -53,9 +69,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
+    if (!isFirebaseConfigured) {
+      return; // Nothing to do
+    }
     setLoading(true);
     try {
-        await signOut(auth);
+        await signOut(auth!);
     } catch (error: any) {
         console.error("Error signing out:", error);
         toast({
@@ -68,7 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = { user, loading, loginWithDiscord, logout };
+  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured };
 
   return (
     <AuthContext.Provider value={value}>

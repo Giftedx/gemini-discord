@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -11,7 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Terminal } from 'lucide-react';
 
 const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
@@ -20,7 +22,7 @@ const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 export default function LoginPage() {
-  const { user, loading, loginWithDiscord } = useAuth();
+  const { user, loading, loginWithDiscord, isFirebaseConfigured } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
-  if (loading || user) {
+  if (loading || (user && isFirebaseConfigured)) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -46,11 +48,20 @@ export default function LoginPage() {
             Log in to manage your server workflows and integrations.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {!isFirebaseConfigured && (
+            <Alert variant="destructive">
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Configuration Error</AlertTitle>
+              <AlertDescription>
+                Firebase client configuration is missing. Please set the required `NEXT_PUBLIC_FIREBASE_*` environment variables.
+              </AlertDescription>
+            </Alert>
+          )}
           <Button
             className="w-full"
             onClick={loginWithDiscord}
-            disabled={loading}
+            disabled={loading || !isFirebaseConfigured}
           >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
