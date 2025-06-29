@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { admin } from '@/lib/firebase';
+import { admin, firestore } from '@/lib/firebase';
+import { Workflow } from '@/models/workflow';
+
+const WORKFLOWS_COLLECTION = 'workflows';
+
+// This function needs to be securely implemented. For this example, we assume
+// the frontend can provide the guildId, but in a real-world multi-tenant app,
+// you would get this from a custom claim in the user's auth token after they've
+// authorized the bot for a specific server.
+async function getGuildsForUser(uid: string): Promise<string[]> {
+  // Mock implementation: In a real app, you would have a mapping of
+  // user IDs to the guilds they manage.
+  // For now, we'll fetch all workflows and let the frontend filter,
+  // but a real implementation MUST filter by guildId on the backend.
+  return []; 
+}
 
 export async function GET() {
   const authorization = headers().get('Authorization');
@@ -13,19 +28,31 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized: Malformed token' }, { status: 401 });
   }
 
+  let decodedToken;
   try {
-    await admin.auth().verifyIdToken(idToken);
+    decodedToken = await admin.auth().verifyIdToken(idToken);
   } catch (error) {
     console.error('Error verifying ID token:', error);
     return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
   }
 
-  const mockWorkflows = [
-    { id: 'wf_1', name: 'Analyze Main Branch Commits', trigger: 'GitHub Push', channel: '#ci-alerts', status: true },
-    { id: 'wf_2', name: 'Daily Project Summary', trigger: 'Schedule', channel: '#general', status: true },
-    { id: 'wf_3', name: 'Staging Deploy Docs', trigger: 'GitHub Push', channel: '#devops', status: false },
-    { id: 'wf_4', name: 'Review new Pull Requests', trigger: 'GitHub PR', channel: '#dev-team', status: true },
-  ];
+  try {
+    // In a real multi-tenant app, you'd add: .where('guildId', 'in', managedGuilds)
+    // const managedGuilds = await getGuildsForUser(decodedToken.uid);
+    // if (managedGuilds.length === 0) {
+    //   return NextResponse.json([]);
+    // }
+    
+    const snapshot = await firestore.collection(WORKFLOWS_COLLECTION).get();
+    
+    const workflows: (Workflow & { id: string })[] = [];
+    snapshot.forEach(doc => {
+      workflows.push({ id: doc.id, ...doc.data() as Workflow });
+    });
 
-  return NextResponse.json(mockWorkflows);
+    return NextResponse.json(workflows);
+  } catch (error) {
+    console.error("Error fetching workflows from Firestore:", error);
+    return NextResponse.json({ error: 'Failed to fetch workflows' }, { status: 500 });
+  }
 }

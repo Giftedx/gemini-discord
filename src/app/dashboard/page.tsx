@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import {
   Table,
@@ -19,51 +19,134 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Trash2, Terminal, Loader2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface Workflow {
   id: string;
-  name: string;
-  trigger: string;
-  channel: string;
-  status: boolean;
+  workflowName: string;
+  triggerType: string;
+  actionConfig: {
+    targetChannelId: string;
+  };
+  isEnabled: boolean;
 }
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchWorkflows = async () => {
-      if (!user) return;
-      try {
-        const token = await user.getIdToken();
-        const response = await fetch('/api/workflows', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  const fetchWorkflows = useCallback(async () => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/workflows', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch workflows. Please try again later.');
-        }
-
-        const data = await response.json();
-        setWorkflows(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch workflows.');
       }
-    };
 
-    fetchWorkflows();
+      const data = await response.json();
+      setWorkflows(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
+  useEffect(() => {
+    fetchWorkflows();
+  }, [fetchWorkflows]);
+
+  const handleStatusToggle = async (workflowId: string, isEnabled: boolean) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/workflows/${workflowId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ isEnabled: !isEnabled }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update workflow status.');
+      }
+      
+      // Optimistically update UI or refetch
+      setWorkflows(workflows.map(w => w.id === workflowId ? { ...w, isEnabled: !isEnabled } : w));
+      toast({
+        title: 'Success',
+        description: `Workflow has been ${!isEnabled ? 'enabled' : 'disabled'}.`,
+      });
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err.message,
+      });
+    }
+  };
+
+  const handleDeleteWorkflow = async (workflowId: string) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/workflows/${workflowId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete workflow.');
+      }
+
+      setWorkflows(workflows.filter(w => w.id !== workflowId));
+      toast({
+        title: 'Success',
+        description: 'Workflow deleted successfully.',
+      });
+    } catch (err: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: err.message,
+      });
+    }
+  };
+
   if (loading) {
-    return <p>Loading workflows...</p>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   if (error) {
@@ -81,7 +164,7 @@ export default function DashboardPage() {
       <CardHeader>
         <CardTitle>Workflows</CardTitle>
         <CardDescription>
-          A list of automated workflows for your server.
+          A list of automated workflows for your server. Manage them here.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -92,21 +175,56 @@ export default function DashboardPage() {
               <TableHead>Trigger</TableHead>
               <TableHead>Target Channel</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {workflows.map((workflow) => (
+            {workflows.length > 0 ? workflows.map((workflow) => (
               <TableRow key={workflow.id}>
-                <TableCell className="font-medium">{workflow.name}</TableCell>
-                <TableCell>{workflow.trigger}</TableCell>
-                <TableCell>{workflow.channel}</TableCell>
+                <TableCell className="font-medium">{workflow.workflowName}</TableCell>
                 <TableCell>
-                  <Badge variant={workflow.status ? 'default' : 'secondary'}>
-                    {workflow.status ? 'Enabled' : 'Disabled'}
-                  </Badge>
+                  <Badge variant="secondary">{workflow.triggerType}</Badge>
+                </TableCell>
+                <TableCell>#{workflow.actionConfig.targetChannelId}</TableCell>
+                <TableCell>
+                   <Switch
+                    checked={workflow.isEnabled}
+                    onCheckedChange={() => handleStatusToggle(workflow.id, workflow.isEnabled)}
+                    aria-label="Toggle workflow status"
+                  />
+                </TableCell>
+                <TableCell className="text-right">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the workflow
+                          "{workflow.workflowName}".
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteWorkflow(workflow.id)}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24">
+                  No workflows found. Create one using the bot!
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>
