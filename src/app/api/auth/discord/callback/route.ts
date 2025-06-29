@@ -1,5 +1,6 @@
+
 import { NextRequest, NextResponse } from 'next/server';
-import admin from 'firebase-admin';
+import { admin } from '@/lib/firebase';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
