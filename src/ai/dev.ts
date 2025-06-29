@@ -1,3 +1,4 @@
+'use server';
 import { config } from 'dotenv';
 config();
 
@@ -9,3 +10,4 @@ import '@/ai/flows/setUserApiKey';
 import '@/ai/flows/web-search-assisted-answer';
 import '@/ai/flows/githubWebhookHandler';
 import '@/ai/flows/workflowProcessor';
+import '@/ai/flows/create-workflow';
