@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { admin } from '@/lib/firebase';
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
@@ -48,16 +49,14 @@ export async function GET(req: NextRequest) {
 
     const userData = await userResponse.json();
 
-    // 3. Log the user profile to verify success (as per instructions)
-    console.log('Successfully fetched Discord user profile:', userData);
+    // 3. Mint a custom Firebase token using the Discord user ID as the UID
+    const customToken = await admin.auth().createCustomToken(userData.id);
 
-    // In a future step, we will mint a Firebase custom token here.
-    // For now, return a success message.
-    return NextResponse.json({
-        status: 'success',
-        message: 'Successfully fetched user profile from Discord. Check server logs.',
-        userProfile: userData
-    });
+    // 4. Redirect to a frontend page with the custom token
+    const redirectUrl = new URL('/auth/verify', process.env.NEXT_PUBLIC_BASE_URL!);
+    redirectUrl.searchParams.set('token', customToken);
+
+    return NextResponse.redirect(redirectUrl.toString());
 
   } catch (error: any) {
     console.error('Discord callback error:', error.message);
