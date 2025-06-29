@@ -1,5 +1,7 @@
 'use server';
 import { config } from 'dotenv';
+// Load .env.local first, then .env. Dotenv will not override existing variables.
+config({ path: '.env.local' });
 config();
 
 // Import flows so that they are registered with Genkit.
