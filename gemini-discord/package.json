@@ -1,17 +1,39 @@
 {
   "name": "gemini-discord",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "1.1.0",
+  "description": "Discord bot with Google Gemini AI integration",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": ["discord", "bot", "gemini", "ai", "typescript"],
+  "author": "Giftedx",
+  "license": "Apache-2.0",
   "dependencies": {
-    "discord.js": "^14.21.0",
-    "dotenv": "^17.0.0",
-    "googlethis": "^1.8.0"
+    "@google/generative-ai": "^0.22.0",
+    "discord.js": "^14.16.4",
+    "dotenv": "^16.4.5",
+    "winston": "^3.13.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

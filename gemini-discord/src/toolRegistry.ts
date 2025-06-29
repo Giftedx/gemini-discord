@@ -4,7 +4,7 @@ import {
   ToolResult,
   ToolCallPart,
 } from '@google/gemini-cli-core';
-    // ... (rest of the imports)
+// ... (rest of the imports)
 import google from 'googlethis';
 import { URL } from 'url';
 
@@ -52,8 +52,10 @@ export class DiscordToolRegistry implements ToolRegistry {
     // Extract the tool name and arguments from the tool call object.
     const toolName = toolCall.functionCall.name;
     const toolArgs = toolCall.functionCall.args;
- 
-    console.log(`Running tool: ${toolName} with args: ${JSON.stringify(toolArgs)}`);
+
+    console.log(
+      `Running tool: ${toolName} with args: ${JSON.stringify(toolArgs)}`,
+    );
 
     // Initialize an empty string to store the tool's output.
     let output = '';
@@ -62,33 +64,37 @@ export class DiscordToolRegistry implements ToolRegistry {
     switch (toolName) {
       case 'web_search':
         try {
- // Extract the search query from the tool arguments
- const query = toolArgs.query; // Assuming the argument name is 'query'
+          // Extract the search query from the tool arguments
+          const query = toolArgs.query; // Assuming the argument name is 'query'
 
           if (!query) {
             throw new Error('Search query is missing.');
           }
 
- // Perform web search using googlethis
+          // Perform web search using googlethis
           const searchResults = await google.search(query, {
- hl: 'en',
- gl: 'us',
- safe: false, // Adjust as needed
+            hl: 'en',
+            gl: 'us',
+            safe: false, // Adjust as needed
           });
 
- // Format the search results into a JSON string
+          // Format the search results into a JSON string
           const formattedResults = {
             query: query,
- results: searchResults.results.map((result: { title: any; url: any; description: any; }) => ({
-              title: result.title,
-              url: result.url,
-              snippet: result.description,
-            })),
+            results: searchResults.results.map(
+              (result: { title: any; url: any; description: any }) => ({
+                title: result.title,
+                url: result.url,
+                snippet: result.description,
+              }),
+            ),
           };
           output = JSON.stringify(formattedResults);
-          } catch (error) {
+        } catch (error) {
           console.error('Error during web search:', error);
- output = JSON.stringify({ error: `Web search failed: ${error.message}` });
+          output = JSON.stringify({
+            error: `Web search failed: ${error.message}`,
+          });
         }
         break;
 
@@ -98,7 +104,9 @@ export class DiscordToolRegistry implements ToolRegistry {
         break;
       default:
         // Handle cases where the tool name is not recognized or implemented.
-        output = JSON.stringify({ error: `Tool '${toolName}' not found or not implemented.` });
+        output = JSON.stringify({
+          error: `Tool '${toolName}' not found or not implemented.`,
+        });
         break;
     }
 
@@ -116,4 +124,3 @@ export class DiscordToolRegistry implements ToolRegistry {
     }
   }
 }
-
