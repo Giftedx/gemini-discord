@@ -2,28 +2,24 @@
 'use client';
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, User, signInWithPopup, OAuthProvider, Unsubscribe, getAuth, Auth } from 'firebase/auth';
+import { onAuthStateChanged, User, Unsubscribe, getAuth, Auth, signOut } from 'firebase/auth';
 import { getFirebaseApp, isFirebaseConfigured } from '@/lib/firebase-client';
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  loginWithDiscord: () => void;
   logout: () => void;
   isFirebaseConfigured: boolean;
   error: string | null;
-  authConfigError: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  loginWithDiscord: () => {},
   logout: () => {},
   isFirebaseConfigured: false,
   error: null,
-  authConfigError: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -31,7 +27,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [auth, setAuth] = useState<Auth | null>(null);
-  const [authConfigError, setAuthConfigError] = useState<boolean>(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,7 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         (user) => {
           setUser(user);
           setError(null);
-          setAuthConfigError(false);
           setLoading(false);
         },
         (err) => {
@@ -62,11 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       );
     } catch (err: any) {
         console.error("Firebase auth setup error:", err);
-        if (err.code && (err.code === 'auth/invalid-api-key' || err.code.includes('api-key-not-valid'))) {
-            setError('Firebase API Key is not valid. Please check your environment configuration.');
-        } else {
-            setError(err.message);
-        }
+        setError(err.message);
         setLoading(false);
     }
 
@@ -77,52 +67,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const loginWithDiscord = async () => {
-    if (!auth) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Error',
-        description: 'Firebase Auth is not initialized.',
-      });
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setAuthConfigError(false);
-    try {
-        const provider = new OAuthProvider('oidc.discord');
-        provider.addScope('identify');
-        provider.addScope('email');
-        await signInWithPopup(auth, provider);
-    } catch (error: any) {
-        console.error("Error during Discord login:", error);
-        let friendlyErrorMessage = "An unexpected error occurred during login.";
-        if (error.code === 'auth/configuration-not-found') {
-          friendlyErrorMessage = "Authentication configuration is missing. Go to your Firebase Console -> Authentication -> Sign-in method and enable the Discord provider.";
-          setAuthConfigError(true);
-        } else if (error.code === 'auth/unauthorized-domain') {
-          friendlyErrorMessage = "This domain is not authorized for OAuth operations. Go to your Firebase Console -> Authentication -> Settings -> Authorized domains and add the domain you are using. For local development, add 'localhost'.";
-          setAuthConfigError(true);
-        } else if (error.message) {
-          friendlyErrorMessage = error.message;
-        }
-
-        setError(friendlyErrorMessage);
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: friendlyErrorMessage,
-        });
-    } finally {
-        setLoading(false);
-    }
-  };
-
   const logout = async () => {
     if (!auth) return;
     setLoading(true);
     try {
         await signOut(auth);
+        setUser(null); // Explicitly clear the user state
     } catch (error: any) {
         console.error("Error signing out:", error);
         toast({
@@ -135,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = { user, loading, loginWithDiscord, logout, isFirebaseConfigured, error, authConfigError };
+  const value = { user, loading, logout, isFirebaseConfigured, error };
 
   return (
     <AuthContext.Provider value={value}>
