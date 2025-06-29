@@ -12,7 +12,7 @@ export const data = new SlashCommandBuilder()
       .setRequired(true))
   .addAttachmentOption(option =>
     option.setName('file')
-      .setDescription('A text-based file to include in the prompt context'));
+      .setDescription('A text or image file to include in the prompt context'));
 
 export async function execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
@@ -22,8 +22,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     if (attachment) {
         // Handle file attachment: call processMultimodalContent
-        if (!attachment.contentType?.startsWith('text/')) {
-            throw new UserVisibleError('Unsupported file type. Please provide a text-based file.');
+        if (!attachment.contentType?.startsWith('text/') && !attachment.contentType?.startsWith('image/')) {
+            throw new UserVisibleError('Unsupported file type. Please provide a text or image file.');
         }
 
         const fileResponse = await fetch(attachment.url);
