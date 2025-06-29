@@ -39,9 +39,17 @@ export default function LoginPage() {
   }
 
   const handleLogin = () => {
+    // Construct an absolute URL to the login API route. This is necessary
+    // to prevent cross-origin errors when running in an iframe.
+    const loginUrl = new URL('/api/auth/discord/login', window.location.origin);
+    
     // This imperatively triggers the navigation and ensures it happens at the top-level,
     // breaking out of any potential iframes.
-    window.top.location.href = '/api/auth/discord/login';
+    if (window.top) {
+      window.top.location.href = loginUrl.href;
+    } else {
+      window.location.href = loginUrl.href;
+    }
   };
 
   return (
