@@ -11,4 +11,5 @@ import '@/ai/flows/web-search-assisted-answer';
 import '@/ai/flows/githubWebhookHandler';
 import '@/ai/flows/workflowProcessor';
 import '@/ai/flows/create-workflow';
+import '@/ai/flows/create-image';
 import '@/services/pdfProcessor';
