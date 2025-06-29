@@ -31,12 +31,13 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
   const { commandName } = interaction;
   console.log(`Received command: ${commandName}`);
 
-  await interaction.deferReply();
+  // Deferral is handled within each command block to allow for ephemeral vs. public replies.
 
   try {
     const userId = interaction.user.id;
 
     if (commandName === 'gemini') {
+      await interaction.deferReply();
       const prompt = interaction.options.getString('prompt', true);
       const attachment = interaction.options.getAttachment('file');
 
@@ -85,6 +86,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         await interaction.editReply(data.summary || 'No summary returned.');
       }
     } else if (commandName === 'analyze') {
+      await interaction.deferReply();
       const attachment = interaction.options.getAttachment('file', true);
       const userPrompt = interaction.options.getString('prompt'); // This is optional
 
@@ -130,8 +132,44 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
       }
 
       await interaction.editReply({ embeds: [analysisEmbed] });
+    } else if (commandName === 'set-key') {
+      await interaction.deferReply({ ephemeral: true });
+
+      const apiKey = interaction.options.getString('api_key', true);
+
+      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/setUserApiKey`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, apiKey }),
+      });
+
+      if (!backendResponse.ok) {
+        const errorText = await backendResponse.text();
+        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
+      }
+
+      await interaction.editReply({ content: 'Your API key has been securely saved and will be used for your future requests.' });
+    
+    } else if (commandName === 'search') {
+      await interaction.deferReply();
+      const query = interaction.options.getString('query', true);
+      
+      const backendResponse = await fetch(`${config.BACKEND_URL}/api/ai/webSearchAssistedAnswer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, query }),
+      });
+      
+      if (!backendResponse.ok) {
+        const errorText = await backendResponse.text();
+        throw new Error(`Backend error: ${backendResponse.status} ${backendResponse.statusText} - ${errorText}`);
+      }
+
+      const data = await backendResponse.json();
+      await interaction.editReply(data.answer || 'No answer returned from web search.');
+
     } else {
-      await interaction.editReply({ content: `Command \`/${commandName}\` is not yet implemented.`});
+      await interaction.reply({ content: `Command \`/${commandName}\` is not yet implemented.`, ephemeral: true});
     }
 
   } catch (error) {
