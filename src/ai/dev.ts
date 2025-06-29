@@ -11,3 +11,4 @@ import '@/ai/flows/web-search-assisted-answer';
 import '@/ai/flows/githubWebhookHandler';
 import '@/ai/flows/workflowProcessor';
 import '@/ai/flows/create-workflow';
+import '@/services/pdfProcessor';

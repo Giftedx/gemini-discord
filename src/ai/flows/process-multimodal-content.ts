@@ -9,6 +9,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { extractTextFromPdf } from '@/services/pdfProcessor';
 
 const ProcessMultimodalContentInputSchema = z.object({
   userId: z
@@ -44,7 +45,7 @@ export async function processMultimodalContent(
   return processMultimodalContentFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const multimodalPrompt = ai.definePrompt({
   name: 'processMultimodalContentPrompt',
   input: {schema: ProcessMultimodalContentInputSchema},
   output: {schema: ProcessMultimodalContentOutputSchema},
@@ -62,10 +63,36 @@ const processMultimodalContentFlow = ai.defineFlow(
     inputSchema: ProcessMultimodalContentInputSchema,
     outputSchema: ProcessMultimodalContentOutputSchema,
   },
-  async input => {
-    // Note: This initial implementation uses the global API key.
-    // It will be updated in a future task to support per-user keys.
-    const {output} = await prompt(input);
-    return output!;
+  async (input) => {
+    const { fileDataUri, prompt: userPrompt } = input;
+
+    const mimeTypeMatch = fileDataUri.match(/^data:(.*);base64,/);
+    if (!mimeTypeMatch) {
+      throw new Error('Invalid data URI format.');
+    }
+    const mimeType = mimeTypeMatch[1];
+    const base64Data = fileDataUri.substring(fileDataUri.indexOf(',') + 1);
+
+    if (mimeType === 'application/pdf') {
+      const pdfBuffer = Buffer.from(base64Data, 'base64');
+      const pdfText = await extractTextFromPdf(pdfBuffer);
+
+      const textAnalysisPrompt = `You are an expert analyst. Analyze the following document text and respond to the user's prompt.
+
+Document Content:
+---
+${pdfText}
+---
+
+User Prompt: ${userPrompt}
+`;
+      const { text } = await ai.generate({ prompt: textAnalysisPrompt });
+      return { analysis: text() };
+
+    } else {
+      // For images and other text files, use the existing multimodal prompt.
+      const { output } = await multimodalPrompt(input);
+      return output!;
+    }
   }
 );
