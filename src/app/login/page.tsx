@@ -38,20 +38,6 @@ export default function LoginPage() {
     );
   }
 
-  const handleLogin = () => {
-    // Construct an absolute URL to the login API route. This is necessary
-    // to prevent cross-origin errors when running in an iframe.
-    const loginUrl = new URL('/api/auth/discord/login', window.location.origin);
-    
-    // This imperatively triggers the navigation and ensures it happens at the top-level,
-    // breaking out of any potential iframes.
-    if (window.top) {
-      window.top.location.href = loginUrl.href;
-    } else {
-      window.location.href = loginUrl.href;
-    }
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
@@ -62,9 +48,11 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-           <Button onClick={handleLogin} className="w-full">
-              <DiscordIcon className="mr-2 h-5 w-5" />
-              Login with Discord
+           <Button asChild className="w-full">
+              <a href="/api/auth/discord/login" target="_top">
+                <DiscordIcon className="mr-2 h-5 w-5" />
+                Login with Discord
+              </a>
             </Button>
         </CardContent>
       </Card>
