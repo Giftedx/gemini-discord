@@ -2,9 +2,9 @@
 'use client';
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, User, signInWithPopup, signOut, OAuthProvider, Unsubscribe } from 'firebase/auth';
-import { auth } from '@/lib/firebase-client';
-import { useToast } from "@/hooks/use-toast"
+import { onAuthStateChanged, User, signInWithPopup, signOut, OAuthProvider, Unsubscribe, getAuth, Auth } from 'firebase/auth';
+import { getFirebaseApp, isFirebaseConfigured } from '@/lib/firebase-client';
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -28,33 +28,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [auth, setAuth] = useState<Auth | null>(null);
   const { toast } = useToast();
-  const isFirebaseConfigured = !!auth;
 
   useEffect(() => {
     if (!isFirebaseConfigured) {
+      setError('Firebase client configuration is missing. Please set the required `NEXT_PUBLIC_FIREBASE_*` environment variables.');
       setLoading(false);
       return;
     }
-    
-    let unsubscribe: Unsubscribe | undefined;
 
+    let unsubscribe: Unsubscribe | undefined;
     try {
-      // The onAuthStateChanged listener can throw a synchronous error if the Firebase config is invalid.
-      // This try/catch block handles that case. The error observer below handles async errors.
-      unsubscribe = onAuthStateChanged(auth!,
+      const app = getFirebaseApp();
+      const authInstance = getAuth(app);
+      setAuth(authInstance);
+
+      unsubscribe = onAuthStateChanged(authInstance,
         (user) => {
           setUser(user);
-          setError(null); // Clear any previous errors on success
+          setError(null);
           setLoading(false);
         },
         (err) => {
           console.error("Firebase auth state error:", err);
-          if (err.code && (err.code === 'auth/invalid-api-key' || err.code.includes('api-key-not-valid'))) {
-              setError('Firebase API Key is not valid. Please check your environment configuration.');
-          } else {
-              setError(err.message);
-          }
+          setError(err.message);
           setLoading(false);
         }
       );
@@ -73,25 +71,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         unsubscribe();
       }
     };
-  }, [isFirebaseConfigured]);
+  }, []);
 
   const loginWithDiscord = async () => {
-    if (!isFirebaseConfigured) {
+    if (!auth) {
       toast({
         variant: 'destructive',
-        title: 'Configuration Error',
-        description: 'Firebase is not configured. Please check your environment variables.',
+        title: 'Authentication Error',
+        description: 'Firebase Auth is not initialized.',
       });
       return;
     }
     setLoading(true);
-    setError(null); // Clear error before attempting login
+    setError(null);
     try {
         const provider = new OAuthProvider('oidc.discord');
-        // Optional: Add scopes to request additional user info
         provider.addScope('identify');
         provider.addScope('email');
-        await signInWithPopup(auth!, provider);
+        await signInWithPopup(auth, provider);
     } catch (error: any) {
         console.error("Error during Discord login:", error);
         setError(error.message);
@@ -106,12 +103,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    if (!isFirebaseConfigured) {
-      return; // Nothing to do
-    }
+    if (!auth) return;
     setLoading(true);
     try {
-        await signOut(auth!);
+        await signOut(auth);
     } catch (error: any) {
         console.error("Error signing out:", error);
         toast({
