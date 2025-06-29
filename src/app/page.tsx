@@ -1,28 +1,39 @@
+'use client';
+
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useAuth } from "@/components/auth-provider";
+import { Loader2 } from "lucide-react";
+
 export default function Home() {
+  const { user, loading } = useAuth();
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh',
-      fontFamily: 'monospace, sans-serif',
-      backgroundColor: '#f5f5f5',
-      color: '#333',
-      textAlign: 'center',
-      padding: '2rem'
-    }}>
-      <div style={{
-        padding: '2rem 4rem',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        backgroundColor: '#fff',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Gemini Discord Bot - Backend</h1>
-        <p style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>The backend service is running.</p>
-        <p style={{ color: '#666' }}>There is no user interface here. Please interact with the bot via Discord.</p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+          Gemini Collaborative Suite
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          The backend service is running. Interact with the bot via Discord or manage your server in the dashboard.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-x-6">
+          {loading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : user ? (
+            <Link href="/dashboard">
+              <Button>Go to Dashboard</Button>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <Button>Admin Login</Button>
+            </Link>
+          )}
+          <a href="#" className="text-sm font-semibold leading-6 text-foreground">
+            Learn more <span aria-hidden="true">→</span>
+          </a>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
