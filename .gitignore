@@ -1,30 +1,41 @@
-# Environment variables
-# Never commit .env files!
+# API keys and secrets
 .env
-.env.*
-!*.example
+.env~
 
-# Service Account Keys
-# NEVER commit secret keys to version control!
-service-account-key.json
-service-account-credentials.json
+# gemini-cli settings
+.gemini/
+!gemini/config.yaml
 
-# Build output
-.next/
-out/
-build/
+# Dependency directory
+node_modules
+bower_components
 
-# Node modules
-node_modules/
+# Editors
+.idea
+*.iml
 
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Other
+# OS metadata
 .DS_Store
-*.pem
+Thumbs.db
 
-service-account-credentials.json
+# TypeScript build info files
+*.tsbuildinfo
+
+# Ignore built ts files
+dist
+
+# Docker folder to help skip auth refreshes
+.docker
+
+bundle
+
+# Test report files
+junit.xml
+packages/*/coverage/
+
+# Generated files
+packages/cli/src/generated/
+.integration-tests/
+
+#discord
+gemini-discord/.env
