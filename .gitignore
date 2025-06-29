@@ -26,3 +26,5 @@ yarn-error.log*
 # Other
 .DS_Store
 *.pem
+
+service-account-credentials.json
