@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { Client, Collection, Events, GatewayIntentBits, Interaction } from 'discord.js';
 import { config } from './config';
 import fs from 'node:fs';

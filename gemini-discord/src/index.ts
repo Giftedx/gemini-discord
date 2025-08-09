@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 // gemini-discord/src/index.ts
     import { Client, GatewayIntentBits, Message, Attachment } from 'discord.js'; // Import Attachment
     import 'dotenv/config';

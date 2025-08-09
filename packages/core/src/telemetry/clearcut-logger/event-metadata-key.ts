@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 // Defines valid event metadata keys for Clearcut logging.
 export enum EventMetadataKey {
   GEMINI_CLI_KEY_UNKNOWN = 0,

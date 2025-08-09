@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 export class LruCache<K, V> {
   private cache: Map<K, V>;
   private maxSize: number;

@@ -1,4 +1,10 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * @fileOverview The API endpoint for receiving GitHub webhooks.
  */
 
@@ -21,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Convert the request stream to a raw buffer, then to a string for validation.
     // We can't use req.text() directly as it consumes the stream.
-    const rawBodyBuffer = await getRawBody(req.body as any);
+    const rawBodyBuffer = await getRawBody(req.body as NodeJS.ReadableStream);
     const rawBody = rawBodyBuffer.toString();
     const payload = JSON.parse(rawBody);
 
@@ -30,8 +36,8 @@ export async function POST(req: NextRequest) {
     githubWebhookHandler({ signature, payload, rawBody });
 
     return NextResponse.json({ message: 'Webhook received and is being processed.' }, { status: 202 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error processing GitHub webhook:', error);
-    return NextResponse.json({ error: error.message || 'An internal error occurred' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'An internal error occurred' }, { status: 500 });
   }
 }

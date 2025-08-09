@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use server';
 import { config } from 'dotenv';
 // Load .env.local first, then .env. Dotenv will not override existing variables.

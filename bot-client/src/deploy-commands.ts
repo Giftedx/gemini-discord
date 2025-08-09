@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { config } from './config';

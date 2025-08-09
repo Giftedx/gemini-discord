@@ -5,7 +5,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';

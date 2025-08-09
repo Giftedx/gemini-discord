@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 'use client';
 
@@ -54,9 +59,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setLoading(false);
         }
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("Firebase auth setup error:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Firebase auth setup failed');
         setLoading(false);
     }
 
@@ -73,7 +78,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
         await signOut(auth);
         setUser(null); // Explicitly clear the user state
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Error signing out:", error);
         toast({
             variant: "destructive",

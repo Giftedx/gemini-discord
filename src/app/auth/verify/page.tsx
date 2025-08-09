@@ -1,7 +1,12 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { getFirebaseApp } from '@/lib/firebase-client';
@@ -35,7 +40,7 @@ export default function VerifyPage() {
         // On successful sign-in, the AuthProvider will detect the user
         // and redirect to the dashboard, but we can be explicit.
         router.replace('/dashboard');
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error signing in with custom token:', err);
         setError('Failed to sign in. Please try again.');
         // Optionally, redirect back to login after a delay

@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {googleCloud} from '@genkit-ai/google-cloud';

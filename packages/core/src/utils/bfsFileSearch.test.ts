@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import * as fs from 'fs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import * as fsPromises from 'fs/promises';

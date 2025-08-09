@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use server';
 
 import { FlowMiddleware } from 'genkit/flow';
@@ -27,8 +33,8 @@ export const appCheckMiddleware: FlowMiddleware = async (input, next) => {
     await admin.appCheck().verifyToken(appCheckToken);
     console.log('App Check token verified successfully.');
     return next(input);
-  } catch (err: any) {
-    console.error('App Check token verification failed:', err.message);
+  } catch (err: unknown) {
+    console.error('App Check token verification failed:', err instanceof Error ? err.message : String(err));
     throw new Error('Unauthorized: Invalid App Check token.');
   }
 };
