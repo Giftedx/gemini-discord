@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use server';
 /**
  * @fileOverview An asynchronous flow for processing validated workflow triggers.
@@ -13,7 +19,7 @@ import { postToChannel } from '@/services/discordService';
 const GITHUB_WORKFLOW_TOPIC = 'github-workflow-triggers';
 
 // Simple templating function to replace placeholders like {{key}}
-function renderTemplate(template: string, context: Record<string, any>): string {
+function renderTemplate(template: string, context: Record<string, string>): string {
     let rendered = template;
     for (const key in context) {
         const regex = new RegExp(`{{${key}}}`, 'g');

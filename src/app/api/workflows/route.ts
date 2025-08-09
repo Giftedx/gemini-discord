@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { admin, firestore } from '@/lib/firebase';
@@ -9,13 +15,13 @@ const WORKFLOWS_COLLECTION = 'workflows';
 // the frontend can provide the guildId, but in a real-world multi-tenant app,
 // you would get this from a custom claim in the user's auth token after they've
 // authorized the bot for a specific server.
-async function getGuildsForUser(uid: string): Promise<string[]> {
-  // Mock implementation: In a real app, you would have a mapping of
-  // user IDs to the guilds they manage.
-  // For now, we'll fetch all workflows and let the frontend filter,
-  // but a real implementation MUST filter by guildId on the backend.
-  return []; 
-}
+// async function getGuildsForUser(uid: string): Promise<string[]> {
+//   // Mock implementation: In a real app, you would have a mapping of
+//   // user IDs to the guilds they manage.
+//   // For now, we'll fetch all workflows and let the frontend filter,
+//   // but a real implementation MUST filter by guildId on the backend.
+//   return []; 
+// }
 
 export async function GET() {
   const authorization = headers().get('Authorization');
@@ -28,9 +34,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized: Malformed token' }, { status: 401 });
   }
 
-  let decodedToken;
   try {
-    decodedToken = await admin.auth().verifyIdToken(idToken);
+    await admin.auth().verifyIdToken(idToken);
   } catch (error) {
     console.error('Error verifying ID token:', error);
     return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });

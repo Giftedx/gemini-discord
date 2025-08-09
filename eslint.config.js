@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
@@ -152,6 +151,13 @@ export default tseslint.config(
           ' */',
         ],
       ],
+    },
+  },
+  {
+    // Disable prop-types for UI components since they use TypeScript
+    files: ['./src/components/ui/**/*.{tsx,ts}'],
+    rules: {
+      'react/prop-types': 'off',
     },
   },
   // extra settings for scripts that we run directly with node

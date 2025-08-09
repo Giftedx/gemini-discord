@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { spawnSync } from 'child_process';
 import { spawn } from 'child_process';
 import { mkdirSync, rmSync, createWriteStream } from 'fs';

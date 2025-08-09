@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use server';
 /**
  * @fileOverview A service for parsing text content from PDF files.

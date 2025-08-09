@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { Box } from 'ink';
 import { type Config, AuthType } from '@google/gemini-cli-core';
 import { GeminiPrivacyNotice } from './GeminiPrivacyNotice.js';

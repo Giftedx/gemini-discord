@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Implemented the webSearchAssistedAnswer flow, allowing the bot to use GenAI to search the web and provide accurate answers to user questions.
 'use server';
 /**

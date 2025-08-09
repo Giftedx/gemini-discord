@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { getProjectTempDir } from '@google/gemini-cli-core';

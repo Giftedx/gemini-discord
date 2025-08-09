@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { ChatInputCommandInteraction, SlashCommandBuilder, ChannelType } from 'discord.js';
 import { UserVisibleError } from '../handlers/ErrorHandler';
 import { fetchWithAppCheck } from '../services/backendService';

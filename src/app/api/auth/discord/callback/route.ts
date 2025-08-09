@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { admin } from '@/lib/firebase';
@@ -65,8 +70,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.redirect(redirectUrl.toString());
 
-  } catch (error: any) {
-    console.error('Discord callback error:', error.message);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('Discord callback error:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal Server Error' }, { status: 500 });
   }
 }

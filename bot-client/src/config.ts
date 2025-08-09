@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import dotenv from 'dotenv';
 
 dotenv.config({ path: require('path').resolve(__dirname, '../.env') });

@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { AuthType, StructuredError } from '@google/gemini-cli-core';
 
 const RATE_LIMIT_ERROR_MESSAGE_GOOGLE =

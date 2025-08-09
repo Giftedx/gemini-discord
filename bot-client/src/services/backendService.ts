@@ -1,3 +1,8 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import fetch, { RequestInit, Response } from 'node-fetch';
 import { getAppCheckToken } from './appCheckService';
 import { config } from '../config';

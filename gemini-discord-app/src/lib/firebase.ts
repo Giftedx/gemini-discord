@@ -1,4 +1,9 @@
 /**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/**
  * @fileOverview Initializes and exports the Firebase Admin SDK for server-side use.
  * This ensures a single instance of the SDK is used throughout the application.
  */

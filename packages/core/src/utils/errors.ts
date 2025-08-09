@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { GaxiosError } from 'gaxios';
 
 export function isNodeError(error: unknown): error is NodeJS.ErrnoException {

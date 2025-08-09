@@ -1,6 +1,12 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/components/auth-provider';
 import { fetchAuthenticated } from '@/lib/backendService';
 import {
@@ -61,8 +67,8 @@ export default function DashboardPage() {
       const response = await fetchAuthenticated('/api/workflows');
       const data = await response.json();
       setWorkflows(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -87,11 +93,11 @@ export default function DashboardPage() {
         title: 'Success',
         description: `Workflow has been ${!isEnabled ? 'enabled' : 'disabled'}.`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: 'destructive',
         title: 'Error updating workflow',
-        description: err.message,
+        description: err instanceof Error ? err.message : 'An error occurred',
       });
     }
   };
@@ -107,11 +113,11 @@ export default function DashboardPage() {
         title: 'Success',
         description: 'Workflow deleted successfully.',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         variant: 'destructive',
         title: 'Error deleting workflow',
-        description: err.message,
+        description: err instanceof Error ? err.message : 'An error occurred',
       });
     }
   };
@@ -180,7 +186,7 @@ export default function DashboardPage() {
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
                           This action cannot be undone. This will permanently delete the workflow
-                          "{workflow.workflowName}".
+                          &quot;{workflow.workflowName}&quot;.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

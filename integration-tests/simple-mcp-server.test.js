@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import { test, describe, before, after } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { TestRig } from './test-helper.js';

@@ -3,7 +3,6 @@
  * Copyright 2025 Google LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
 import fs from 'fs/promises';
 import os from 'os';
 import { join as pathJoin } from 'node:path';

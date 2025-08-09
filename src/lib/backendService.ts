@@ -1,3 +1,9 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 'use client';
 
 import { getAuth } from 'firebase/auth';
@@ -34,8 +40,8 @@ export async function fetchAuthenticated(url: string, options: RequestInit = {})
         try {
             const errorData = await response.json();
             throw new Error(errorData.error || `Request failed with status ${response.status}`);
-        } catch (e: any) {
-             if (e.message.startsWith('Request failed')) {
+        } catch (e: unknown) {
+             if (e instanceof Error && e.message.startsWith('Request failed')) {
                 throw e;
             }
             throw new Error(response.statusText || `Request failed with status ${response.status}`);
