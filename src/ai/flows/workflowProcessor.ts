@@ -10,7 +10,6 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { onMessagePublished } from '@genkit-ai/google-cloud';
 import { z } from 'zod';
 import { firestore } from '@/lib/firebase';
 import { Workflow } from '@/models/workflow';
@@ -34,8 +33,6 @@ export const workflowProcessor = ai.defineFlow(
     name: 'workflowProcessor',
     inputSchema: z.any(),
     outputSchema: z.void(),
-    // This flow is triggered by messages published to the specified Pub/Sub topic.
-    trigger: onMessagePublished(GITHUB_WORKFLOW_TOPIC),
   },
   async (payload) => {
     console.log('Workflow processor triggered by Pub/Sub message.');
@@ -104,7 +101,7 @@ export const workflowProcessor = ai.defineFlow(
                 // Post the result to the target Discord channel
                 const targetChannelId = workflow.actionConfig.targetChannelId;
                 if (targetChannelId) {
-                    await postToChannel(targetChannelId, text());
+                    await postToChannel(targetChannelId, text);
                     console.log(`Posted Gemini response for workflow "${workflow.workflowName}" to channel ${targetChannelId}.`);
                 } else {
                      console.error(`Workflow "${workflow.workflowName}" is missing targetChannelId.`);

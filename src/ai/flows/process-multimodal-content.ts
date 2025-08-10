@@ -70,7 +70,7 @@ const processMultimodalContentFlow = ai.defineFlow(
     name: 'processMultimodalContentFlow',
     inputSchema: ProcessMultimodalContentInputSchema,
     outputSchema: ProcessMultimodalContentOutputSchema,
-    middleware: [appCheckMiddleware],
+
   },
   async (input) => {
     const { fileDataUri, prompt: userPrompt } = input;
@@ -97,7 +97,7 @@ ${pdfText}
 User Prompt: ${userPrompt}
 `;
       const { text } = await ai.generate({ prompt: textAnalysisPrompt });
-      analysis = text();
+      analysis = text;
 
     } else {
       // For images and other text files, use the existing multimodal prompt.

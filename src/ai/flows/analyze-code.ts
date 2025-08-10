@@ -95,7 +95,6 @@ const analyzeFlow = ai.defineFlow(
     name: 'analyzeFlow',
     inputSchema: AnalyzeCodeInputSchema,
     outputSchema: AnalyzeCodeOutputSchema,
-    middleware: [appCheckMiddleware],
   },
   async input => {
     const userApiKey = await getUserApiKey(input.userId);
@@ -109,7 +108,7 @@ const analyzeFlow = ai.defineFlow(
       });
 
       let promptText = `${systemPrompt} Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(
-        AnalyzeCodeOutputSchema.jsonSchema
+        AnalyzeCodeOutputSchema.shape
       )}\n\n`;
 
       if (input.userPrompt) {

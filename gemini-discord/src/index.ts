@@ -34,8 +34,9 @@
       (globalThis as any).fetch = fetch;
     }
 
-    // Create a new client instance
-    const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageCreate, GatewayIntentBits.DirectMessages], partials: ['CHANNEL'] }); // Added Partial for DMs
+    async function main() {
+      // Create a new client instance
+      const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageCreate, GatewayIntentBits.DirectMessages], partials: ['CHANNEL'] }); // Added Partial for DMs
 
     // Store GeminiClient instances per channel/thread for conversation context
     const geminiClients = new Map<string, GeminiClient>();
@@ -555,12 +556,6 @@
                      await message.reply('Received an empty response from Gemini.');
                      currentMessageContent = null; // Exit loop if no response and no tool calls
                  }
-
-
-                 } else {
-                     await message.reply('Received an empty response from Gemini.');
-                     currentMessageContent = null; // Exit loop if no response and no tool calls
-                 }
              }
 
         } catch (error) {
@@ -740,7 +735,38 @@
                           }
                       }
 
-                      // After executing all tool calls, send the results back to the model
+                                             // After executing all tool calls, send the results back to the model
                        // Note: We need to add the tool *invocations* from the model response
                        // and the tool *results* from our execution to the conversation history.
                        // The core expects the model's tool calls first, then the function responses.
+
+                       // Add tool calls and results to conversation history
+                       conversation.push({
+                           role: 'model',
+                           parts: [{ toolCalls: toolCalls } as Part],
+                       });
+                       conversation.push({ role: 'function', parts: toolResults });
+
+                       // Continue the conversation with the tool results included
+                       currentMessageContent = { contents: conversation, tool_config: { function_calling_config: { mode: 'AUTO' } } };
+                   } else {
+                       await interaction.editReply('Received an empty response from Gemini.');
+                       currentMessageContent = null; // Exit loop if no response and no tool calls
+                   }
+               }
+
+           } catch (error) {
+               console.error('Error processing interaction:', error);
+               await interaction.editReply('Sorry, there was an error processing your request. Please try again.');
+           }
+       });
+
+       // Start the bot
+       client.login(process.env.DISCORD_TOKEN);
+    }
+
+    // Start the application
+    main().catch((error) => {
+      console.error('Error starting bot:', error);
+      process.exit(1);
+    });

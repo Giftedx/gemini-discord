@@ -135,6 +135,7 @@ describe('useReactToolScheduler in YOLO Mode', () => {
       callId: 'yoloCall',
       name: 'mockToolRequiresConfirmation',
       args: { data: 'any data' },
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -288,6 +289,7 @@ describe('useReactToolScheduler', () => {
       callId: 'call1',
       name: 'mockTool',
       args: { param: 'value' },
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -335,6 +337,7 @@ describe('useReactToolScheduler', () => {
       callId: 'call1',
       name: 'nonExistentTool',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -372,6 +375,7 @@ describe('useReactToolScheduler', () => {
       callId: 'call1',
       name: 'mockTool',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -408,6 +412,7 @@ describe('useReactToolScheduler', () => {
       callId: 'call1',
       name: 'mockTool',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -449,6 +454,7 @@ describe('useReactToolScheduler', () => {
       callId: 'callConfirm',
       name: 'mockToolRequiresConfirmation',
       args: { data: 'sensitive' },
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -505,6 +511,7 @@ describe('useReactToolScheduler', () => {
       callId: 'callConfirmCancel',
       name: 'mockToolRequiresConfirmation',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -577,6 +584,7 @@ describe('useReactToolScheduler', () => {
       callId: 'liveCall',
       name: 'mockToolWithLiveOutput',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -666,8 +674,8 @@ describe('useReactToolScheduler', () => {
     const { result } = renderScheduler();
     const schedule = result.current[1];
     const requests: ToolCallRequestInfo[] = [
-      { callId: 'multi1', name: 'tool1', args: { p: 1 } },
-      { callId: 'multi2', name: 'tool2', args: { p: 2 } },
+      { callId: 'multi1', name: 'tool1', args: { p: 1 }, isClientInitiated: false },
+      { callId: 'multi2', name: 'tool2', args: { p: 2 }, isClientInitiated: false },
     ];
 
     act(() => {
@@ -745,11 +753,13 @@ describe('useReactToolScheduler', () => {
       callId: 'run1',
       name: 'mockTool',
       args: {},
+      isClientInitiated: false,
     };
     const request2: ToolCallRequestInfo = {
       callId: 'run2',
       name: 'mockTool',
       args: {},
+      isClientInitiated: false,
     };
 
     act(() => {
@@ -786,6 +796,7 @@ describe('mapToDisplay', () => {
     callId: 'testCallId',
     name: 'testTool',
     args: { foo: 'bar' },
+    isClientInitiated: false,
   };
 
   const baseTool: Tool = {

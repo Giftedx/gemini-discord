@@ -80,7 +80,7 @@ const webSearchAssistedAnswerFlow = ai.defineFlow(
     name: 'webSearchAssistedAnswerFlow',
     inputSchema: WebSearchAssistedAnswerInputSchema,
     outputSchema: WebSearchAssistedAnswerOutputSchema,
-    middleware: [appCheckMiddleware],
+
   },
   async input => {
     // TODO: This flow does not currently support user-specific API keys

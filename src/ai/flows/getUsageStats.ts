@@ -37,7 +37,7 @@ const getUsageStatsFlow = ai.defineFlow(
     name: 'getUsageStatsFlow',
     inputSchema: GetUsageStatsInputSchema,
     outputSchema: GetUsageStatsOutputSchema,
-    middleware: [appCheckMiddleware],
+
   },
   async ({ userId }) => {
     const count = await getUserUsageStats(userId);

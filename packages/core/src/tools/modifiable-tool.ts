@@ -112,7 +112,7 @@ function getUpdatedParams<ToolParams>(
     DEFAULT_DIFF_OPTIONS,
   );
 
-  return { updatedParams, updatedDiff };
+  return { updatedParams, updatedDiff: updatedDiff || '' };
 }
 
 function deleteTempFiles(oldPath: string, newPath: string): void {

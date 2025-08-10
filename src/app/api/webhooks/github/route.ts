@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     // Convert the request stream to a raw buffer, then to a string for validation.
     // We can't use req.text() directly as it consumes the stream.
-    const rawBodyBuffer = await getRawBody(req.body as NodeJS.ReadableStream);
+    const rawBodyBuffer = await getRawBody(req.body as any);
     const rawBody = rawBodyBuffer.toString();
     const payload = JSON.parse(rawBody);
 

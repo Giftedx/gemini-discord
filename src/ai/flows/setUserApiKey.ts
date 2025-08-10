@@ -32,7 +32,7 @@ const setUserApiKeyFlow = ai.defineFlow(
     name: 'setUserApiKeyFlow',
     inputSchema: SetUserApiKeyInputSchema,
     outputSchema: z.void(),
-    middleware: [appCheckMiddleware],
+
   },
   async ({userId, apiKey}) => {
     await saveUserApiKey(userId, apiKey);

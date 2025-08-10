@@ -44,7 +44,7 @@ const createWorkflowFlow = ai.defineFlow(
         name: 'createWorkflowFlow',
         inputSchema: CreateWorkflowInputSchema,
         outputSchema: CreateWorkflowOutputSchema,
-        middleware: [appCheckMiddleware],
+
     },
     async (workflowData) => {
         const workflowId = await createWorkflowService(workflowData);

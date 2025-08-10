@@ -24,7 +24,8 @@ const WORKFLOWS_COLLECTION = 'workflows';
 // }
 
 export async function GET() {
-  const authorization = headers().get('Authorization');
+  const headersList = await headers();
+  const authorization = headersList.get('Authorization');
   if (!authorization?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
   }
