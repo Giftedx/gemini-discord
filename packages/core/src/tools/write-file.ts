@@ -201,7 +201,7 @@ export class WriteFileTool
       type: 'edit',
       title: `Confirm Write: ${shortenPath(relativePath)}`,
       fileName,
-      fileDiff,
+      fileDiff: fileDiff || '',
       onConfirm: async (outcome: ToolConfirmationOutcome) => {
         if (outcome === ToolConfirmationOutcome.ProceedAlways) {
           this.config.setApprovalMode(ApprovalMode.AUTO_EDIT);
@@ -287,7 +287,7 @@ export class WriteFileTool
         );
       }
 
-      const displayResult: FileDiff = { fileDiff, fileName };
+      const displayResult: FileDiff = { fileDiff: fileDiff || '', fileName };
 
       const lines = fileContent.split('\n').length;
       const mimetype = getSpecificMimeType(params.file_path);

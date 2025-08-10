@@ -38,7 +38,7 @@ const createImageFlow = ai.defineFlow(
     name: 'createImageFlow',
     inputSchema: CreateImageInputSchema,
     outputSchema: CreateImageOutputSchema,
-    middleware: [appCheckMiddleware],
+
   },
   async ({ userId, prompt }) => {
     console.log(`Generating image for prompt: "${prompt}"`);

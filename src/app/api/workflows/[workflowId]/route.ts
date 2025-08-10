@@ -21,7 +21,8 @@ async function verifyUser(idToken: string) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { workflowId: string } }) {
-    const authorization = headers().get('Authorization');
+    const headersList = await headers();
+    const authorization = headersList.get('Authorization');
     if (!authorization?.startsWith('Bearer ')) {
         return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
     }
@@ -60,7 +61,8 @@ export async function PATCH(request: Request, { params }: { params: { workflowId
 
 
 export async function DELETE(request: Request, { params }: { params: { workflowId: string } }) {
-    const authorization = headers().get('Authorization');
+    const headersList = await headers();
+    const authorization = headersList.get('Authorization');
     if (!authorization?.startsWith('Bearer ')) {
         return NextResponse.json({ error: 'Unauthorized: Missing token' }, { status: 401 });
     }

@@ -60,7 +60,7 @@ const summarizeDiscordConversationFlow = ai.defineFlow(
     name: 'summarizeDiscordConversationFlow',
     inputSchema: SummarizeDiscordConversationInputSchema,
     outputSchema: SummarizeDiscordConversationOutputSchema,
-    middleware: [appCheckMiddleware],
+
   },
   async input => {
     const userApiKey = await getUserApiKey(input.userId);
@@ -73,7 +73,7 @@ const summarizeDiscordConversationFlow = ai.defineFlow(
             generationConfig: { responseMimeType: 'application/json' },
         });
         
-        const systemPrompt = `You will be provided with a Discord thread. Summarize it, focusing on key discussion points and decisions. Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(SummarizeDiscordConversationOutputSchema.jsonSchema)}`;
+        const systemPrompt = `You will be provided with a Discord thread. Summarize it, focusing on key discussion points and decisions. Your response MUST be a JSON object that conforms to this Zod schema: ${JSON.stringify(SummarizeDiscordConversationOutputSchema.shape)}`;
         const promptForCustomKey = `${systemPrompt}\n\nDiscord Thread:\n${input.threadText}`;
 
         const result = await model.generateContent(promptForCustomKey);

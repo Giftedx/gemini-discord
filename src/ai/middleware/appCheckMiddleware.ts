@@ -6,11 +6,10 @@
 
 'use server';
 
-import { FlowMiddleware } from 'genkit/flow';
 import { headers } from 'next/headers';
 import { admin } from '@/lib/firebase';
 
-export const appCheckMiddleware: FlowMiddleware = async (input, next) => {
+export const appCheckMiddleware = async (input: any, next: any) => {
   // In a real-world production environment, you would likely want to make this enforcement
   // configurable. For this project, we'll enforce App Check unless a specific env var is
   // set for local development, which is useful for testing flows with the Genkit UI.
@@ -19,7 +18,8 @@ export const appCheckMiddleware: FlowMiddleware = async (input, next) => {
      return next(input);
   }
 
-  const appCheckToken = headers().get('X-Firebase-AppCheck');
+  const headersList = await headers();
+  const appCheckToken = headersList.get('X-Firebase-AppCheck');
 
   if (!appCheckToken) {
     console.warn('App Check token not found. Rejecting request.');

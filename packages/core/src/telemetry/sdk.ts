@@ -86,23 +86,14 @@ export function initializeTelemetry(config: Config): void {
         compression: CompressionAlgorithm.GZIP,
       })
     : new ConsoleLogRecordExporter();
-  const metricReader = useOtlp
-    ? new PeriodicExportingMetricReader({
-        exporter: new OTLPMetricExporter({
-          url: grpcParsedEndpoint,
-          compression: CompressionAlgorithm.GZIP,
-        }),
-        exportIntervalMillis: 10000,
-      })
-    : new PeriodicExportingMetricReader({
-        exporter: new ConsoleMetricExporter(),
-        exportIntervalMillis: 10000,
-      });
+  const metricReader = new PeriodicExportingMetricReader({
+    exporter: new ConsoleMetricExporter(),
+    exportIntervalMillis: 10000,
+  });
 
   sdk = new NodeSDK({
     resource,
     spanProcessors: [new BatchSpanProcessor(spanExporter)],
-    logRecordProcessor: new BatchLogRecordProcessor(logExporter),
     metricReader,
     instrumentations: [new HttpInstrumentation()],
   });
